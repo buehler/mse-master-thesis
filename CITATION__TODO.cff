@@ -4,13 +4,13 @@ authors:
   - family-names: 'Bühler'
     given-names: 'Christoph'
     orcid: 'https://orcid.org/0000-0002-2224-1687'
-title: 'Common Identities in a Distributed Authentication Mesh'
+title: 'TODO'
 version: 1.0.0
-date-released: 2022-02-04
-url: 'https://github.com/buehler/mse-project-thesis-2'
+date-released: 2023-02-01
+url: 'https://github.com/buehler/mse-master-thesis'
 preferred-citation:
-  type: report
-  title: 'Common Identities in a Distributed Authentication Mesh - Definition and Implementation of a Common Identity for Secure Transport'
+  type: masterthesis
+  title: 'TODO - TODO'
   authors:
     - family-names: 'Bühler'
       given-names: 'Christoph'
@@ -19,5 +19,5 @@ preferred-citation:
   address: Oberseestrasse 10, 8640 Rapperswil, Switzerland
   year: 2022
   month: feb
-  url: https://buehler.github.io/mse-project-thesis-2/report.pdf
+  url: https://buehler.github.io/mse-master-thesis/report.pdf
   howpublished: GitHub Pages

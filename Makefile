@@ -4,6 +4,7 @@ sections = $(wildcard sections/*.md)
 common_build_args = \
 	--lua-filter=lua-filters/abstract-to-meta.lua \
 	--lua-filter=lua-filters/include-files.lua \
+	--filter pandoc-plantuml \
 	--filter pandoc-xnos \
 	--lua-filter=lua-filters/plantuml-converter.lua \
 	--lua-filter=lua-filters/short-captions.lua \
@@ -42,6 +43,7 @@ build_html:
 	@mkdir -p ./public
 	@pandoc ${common_build_args} --toc --output=public/index.html ${sections}
 	@cp -R images public/
+	@cp -R plantuml-images public/
 	@cp -R diagrams public/
 	@rm -rf public/diagrams/.gitignore
 
