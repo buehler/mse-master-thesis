@@ -1,0 +1,17 @@
+{
+  "name": "mse-project-thesis-2",
+  "private": true,
+  "scripts": {
+    "prestart": "make clean_build",
+    "start": "concurrently -k npm:nodemon npm:server",
+    "nodemon": "nodemon --config nodemon.json --exec \"make html\"",
+    "nodemon:pdf": "nodemon --config nodemon.json --exec \"make pdf\"",
+    "server": "http-server public -o",
+    "pdf": "make pdf"
+  },
+  "dependencies": {
+    "concurrently": "6.2.1",
+    "http-server": "13.0.2",
+    "nodemon": "2.0.13"
+  }
+}

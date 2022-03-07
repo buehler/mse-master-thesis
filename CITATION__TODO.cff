@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: 'If you reference to this project/work, please cite it as below.'
+authors:
+  - family-names: 'Bühler'
+    given-names: 'Christoph'
+    orcid: 'https://orcid.org/0000-0002-2224-1687'
+title: 'Common Identities in a Distributed Authentication Mesh'
+version: 1.0.0
+date-released: 2022-02-04
+url: 'https://github.com/buehler/mse-project-thesis-2'
+preferred-citation:
+  type: report
+  title: 'Common Identities in a Distributed Authentication Mesh - Definition and Implementation of a Common Identity for Secure Transport'
+  authors:
+    - family-names: 'Bühler'
+      given-names: 'Christoph'
+      orcid: 'https://orcid.org/0000-0002-2224-1687'
+  institution: University of Applied Science of Eastern Switzerland (OST)
+  address: Oberseestrasse 10, 8640 Rapperswil, Switzerland
+  year: 2022
+  month: feb
+  url: https://buehler.github.io/mse-project-thesis-2/report.pdf
+  howpublished: GitHub Pages

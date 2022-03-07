@@ -1,0 +1,6 @@
+{
+  "ignore": [".git", "diagrams/**/*.png"],
+  "verbose": true,
+  "watch": ["diagrams", "sections", "images", "./bibliography.bib"],
+  "ext": "md,bib,yaml,png,puml"
+}

@@ -1,0 +1,26 @@
+reference-section-title: Bibliography
+
+# Latex config
+papersize: a4
+documentclass: scrartcl
+toc: false
+numbersections: false
+lof: false
+lot: false
+bibliography: bibliography.bib
+csl: ieee-software.csl
+
+# Tool configuration
+fignos-cleveref: true
+fignos-plus-name: Figure
+fignos-star-name: figure
+secnos-cleveref: true
+secnos-plus-name:
+  section: Section
+  chapter: Chapter
+secnos-star-name:
+  section: section
+  chapter: chapter
+tablenos-cleveref: true
+tablenos-plus-name: Table
+tablenos-star-name: table

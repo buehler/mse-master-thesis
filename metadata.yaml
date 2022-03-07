@@ -1,0 +1,48 @@
+# Metadata
+title: TODO
+subtitle: Definition and Implementation of a Common Identity for Secure Transport
+author: Christoph Bühler
+date: |
+  Spring and Autumn Semester 2022\
+  University of Applied Science of Eastern Switzerland (OST)
+lang: en-US
+keywords:
+  - Authentication
+  - Distributed
+  - Trust Zone
+reference-section-title: Bibliography
+csl: ieee-software.csl
+
+# Latex config
+papersize: a4
+documentclass: scrartcl
+toc: true
+numbersections: true
+lof: true
+lot: false
+bibliography: bibliography.bib
+thanks: I would like to express my appreciation to Mirko Stocker for guiding and reviewing this work. Furthermore, special thanks to Florian Forster, who provided the initial inspiration and technical expertise of the topic.
+header-includes: |
+  \usepackage{float}
+  \let\origfigure\figure
+  \let\endorigfigure\endfigure
+  \renewenvironment{figure}[1][2] {
+      \expandafter\origfigure\expandafter[H]
+  } {
+      \endorigfigure
+  }
+
+# Tool configuration
+fignos-cleveref: true
+fignos-plus-name: Figure
+fignos-star-name: figure
+secnos-cleveref: true
+secnos-plus-name:
+  section: Section
+  chapter: Chapter
+secnos-star-name:
+  section: section
+  chapter: chapter
+tablenos-cleveref: true
+tablenos-plus-name: Table
+tablenos-star-name: table
