@@ -56,13 +56,23 @@ The distributed authentication mesh is a security application. Therefore, securi
 
 ### The CIA Triad
 
-### Trust is Important
+The three pillars of information security: **Confidentiality**, **Integrity**, and **Availability**. These three elements form the foundation of security in information systems. The CIA triad is, despite the fact that it was first mentioned around the year 1980, still relevant for security practitioners and in general security management [@samonas:CIA].
 
-### Zones and Zero Trust
+Confidentiality addresses the topic of gaining access where one is not allowed to. If someone is able to read certain information without being authorized to do so, the confidentiality is breached. An example could be that some attacker is able to forge login credentials and thus has access to files they should not be able to see.
+
+Integrity covers proving that some information was not modified. An attacker that is able to modify information in a system, even when the attacker is not able to read the information, the integrity of the information is compromised. For example, with a man in the middle (MITM) attack, the integrity of the communication is corrupted and the attack may forge or change information that the users are sending/receiving [@mallik:MITM].
+
+Availability handles the possibility to get the information from the particular system. If an attacker can prevent an authorized user to gain access to their information, the availability is impaired. This could happen, if an attacker uses a DDoS (distributed denial of service) attack to prevent access to a resource.
+
+### Trust Zones and Zero Trust
+
+Trust zones are the areas where applications "can trust each other". When an application verifies the presented credentials of a user and allows a request, it may access other resources (such as APIs) on the users' behalf. When the concept of trust zones is applied, other APIs may trust the original requester that the user has authenticated itself.
+
+In contrast to trust zones, "Zero Trust" is a security model that focuses on protecting (sensitive) data [@iftekhar:ProtectDataWithZeroTrust]. Zero trust assumes that every call could be intercepted by an attacker. Thus, for the concept of zero trust, it is irrelevant if the application resides in an enterprise network or if it is publicly accessible. As a consequence of zero trust, user credentials must be presented and validated for each access to a resource [@rose:zero-trust].
 
 ### Securing Communication between Parties
 
-The key argument of the distributed authentication mesh is the possibility to provide a secured identity over a service landscape that has heterogeneous authentication schemes [@buehler:DistAuthMesh].
+The key focus of the distributed authentication mesh is the possibility to provide a secured identity over a service landscape that has heterogeneous authentication schemes [@buehler:DistAuthMesh]. Thus, securing communication between participants is of most utter importance. A wide range of security mechanisms and authentication schemes exist. To demonstrate the distributed authentication mesh and the contracts between the trust zones, the following schemes/techniques are used.
 
 #### HTTP Basic Authentication
 
@@ -75,3 +85,7 @@ OpenID Connect (OIDC) is not defined in an RFC. The specification is provided by
 ![OIDC code authorization flow [@spec:OIDC]. Only contains the credential flow, without the explicit OAuth part. OAuth handles the authorization whereas OIDC handles the authentication.](diagrams/02_oidc_code_flow.puml){#fig:02_oidc_code_flow short-caption="OpenID Connect (OIDC) Authorization Code Flow"}
 
 {@fig:02_oidc_code_flow} shows an example where a user wants to access a protected application. The user is forwarded to an external login page (Identity Provider) and enters his credentials. When they are correct, the user gets redirected to the web application with an authorization code. The code is used to fetch an access and ID token for the user. These tokens identify, authenticate and authorize the user. The application is now able to provide the access token to the API (Relying Party). The API itself is able to verify the presented token to validate and authorize the user.
+
+#### Mutual Transport Layer Security (mTLS)
+
+An mTLS connection is essentially a TLS connection, like in HTTPS requests, but both parties present an X509 certificate. The connection is only allowed to open if both parties present a valid and trusted certificate. Thus, it enables both parties to verify their corresponding partner and prevents man in the middle attacks [@siriwardena:mTLS].
