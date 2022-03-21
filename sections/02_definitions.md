@@ -44,9 +44,9 @@ In the distributed authentication mesh, an Operator is used to automatically att
 
 A Sidecar is an extension to an existing Pod. Some controller (for example an Operator) can inject a Sidecar into a Pod or the Sidecar gets configured in the Deployment in the first place. [@burns:DesignPatterns]
 
-![An example of a Sidecar](images/02_sidecar_example.png){#fig:02_sidecar width=80%}
+![An example of a Sidecar](images/02_sidecar_example.png){#fig:02_sidecar_example width=80%}
 
-{@fig:02_sidecar} shows an example of a Sidecar. An application runs a Pod and writes log messages to `/var/logs/app.log` in the shared file system. A specialized "Log Collector" Sidecar can be injected into the Pod and read those log messages. Then the Sidecar forwards the parsed logs to some logging software like Graylog^[<https://www.graylog.org/>].
+{@fig:02_sidecar_example} shows an example of a Sidecar. An application runs a Pod and writes log messages to `/var/logs/app.log` in the shared file system. A specialized "Log Collector" Sidecar can be injected into the Pod and read those log messages. Then the Sidecar forwards the parsed logs to some logging software like Graylog^[<https://www.graylog.org/>].
 
 Sidecars can fulfil multiple use-cases. A service mesh may use Sidecars to provide proxies for service discovery. Logging operators may inject Sidecars into applications to grab and parse logs from applications. Sidecars are a symbiotic extension to an application [@burns:KubernetesBook, ch. 5].
 
