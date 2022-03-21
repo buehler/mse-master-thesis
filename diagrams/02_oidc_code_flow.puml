@@ -1,0 +1,20 @@
+@startuml
+!theme cerulean-outline
+
+actor User as u
+participant "App" as a
+participant "Relying Party" as rp
+participant "Identity Provider" as idp
+
+u -> a : Wants to access
+a -> rp : Wants to access
+rp --> u : Redirect to login
+
+u -> idp : Provide login credentials
+idp --> a : Redirect to app with authorization code
+a -> idp : Exchange code for tokens
+idp --> a : Receive access & id token
+
+a --> rp : Client is able to access with access token
+
+@enduml

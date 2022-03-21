@@ -6,7 +6,7 @@ This section provides the scope, context and prerequisite knowledge for this pro
 
 ## Scope of this Project
 
-This project builds upon two former projects "Distributed Authentication Mesh" [@buehler:DistAuthMesh] and "Common Identities in a Distributed Authentication Mesh" [@buehler:CommonIdentity]. The past work did define a general concept for a distributed authentication [@buehler:DistAuthMesh] and the definition and implementation of a common identity that is shared between the applications in the mesh [@buehler:CommonIdentity].
+This project builds upon two former projects "Distributed Authentication Mesh" [@buehler:DistAuthMesh] and "Common Identities in a Distributed Authentication Mesh" [@buehler:CommonIdentity]. The past work defined a general concept for distributed authentication [@buehler:DistAuthMesh] and the definition and implementation of a common identity that is shared between the applications in the mesh [@buehler:CommonIdentity].
 
 The goal of this project is to achieve a truly distributed mesh. To reach a distributed state in the mesh and to be able to trust other trust zones, a contract between each zone must exist. This project defines and implements the contract and provides the tools that are necessary to run such a mesh in Kubernetes. In this project, we analyze different options to form a contract between distant parties and define the specific properties of the contract. After the analyzation and definition, an open-source implementation shall show the feasibility and the usability of the distributed authentication mesh.
 
@@ -24,27 +24,35 @@ To understand further concepts and Kubernetes in general, some basic terminology
 
 A **Pod** is the smallest possible deployment unit and contains a collection of application containers and volumes [@burns:KubernetesBook, ch. 5]. {@fig:02_kubernetes_parts} shows a Pod that contains two containers. Containers are definitions for workloads that must be run. To enable Kubernetes to run such a container, a containerized application and a container image must be present. Such an image-format is "Docker"^[<https://www.docker.com/>], a container runtime for various platforms.
 
-**Deployments** manage multiple Pods. A Deployment object manages new releases and represent a deployed application. They enable developers to move up to new versions of an application [@burns:KubernetesBook, ch. 10]. In {@fig:02_kubernetes_parts}, a Deployment holds the Pod which in turn holds the containers.
+**Deployments** manage multiple Pods. A Deployment object manages new releases and represent a deployed application. They enable developers to move up to new versions of an application [@burns:KubernetesBook, ch. 10]. In {@fig:02_kubernetes_parts}, a Deployment contains the Pod which in turn holds containers. There exist multiple deployment specifications, such as `Deployment` and `Stateful Set` which have their own use-cases depending on the specification.
 
 A **Service** makes ports in Pods accessible to the Kubernetes world. They provide service discovery via Kubernetes internal DNS services [@burns:KubernetesBook, ch. 7]. The service in {@fig:02_kubernetes_parts} enables access to one of the containers in the Pod. A service load balances access if multiple containers match the service description.
 
-**Ingress** objects define external access to objects within Kubernetes. Kubernetes uses "Ingress Controllers" that configure the access to services and/or containers [@burns:KubernetesBook, ch. 8]. As an example, "NGINX"^[<https://www.nginx.com/>] is an ingress controller that is often used. When an Ingress is configured to allow access to the service in {@fig:02_kubernetes_parts}, NGINX is configured that the respective virtual host forwards communication to the given service (reverse-proxying).
+**Ingress** objects define external access to objects within Kubernetes. Kubernetes uses "Ingress Controllers" that configure the access to services and/or containers [@burns:KubernetesBook, ch. 8]. As an example, "NGINX"^[<https://www.nginx.com/>] is an ingress controller that is popular. When an Ingress is configured to allow access to the service in {@fig:02_kubernetes_parts}, NGINX is configured that the respective virtual host forwards communication to the given service (reverse-proxying).
 
 ### What is an Operator
 
-The "Operator pattern" provides a way to automate complex applications in Kubernetes. An Operator can be compared to a Site Reliability Engineer (SRE) because the Operator manages and automates complex applications with expert knowledge [@dobies:Operators].
+Site Reliability Engineering (SRE) is a specific software engineering technique to automate complex software. A team of experts uses certain practices and principles to run scalable and highly available applications [@beyer:SRE]. The "Operator pattern" provides a way to automate complex applications in Kubernetes. An Operator can be compared to a Site Reliability Engineer because the Operator manages and automates complex applications with expert knowledge [@dobies:Operators].
 
-An Operator makes use of "Custom Resource Definitions" (CRD) in Kubernetes. These definitions extend the Kubernetes API with custom objects that can be manipulated by a user of the Kubernetes instance. The Operator "watches" for events regarding objects in Kubernetes. The events can contain the creation, modification, and deletion of such a watched resource.
+An Operator makes use of "Custom Resource Definitions" (CRD) in Kubernetes. These definitions extend the Kubernetes API with custom objects that can be manipulated by a user of the Kubernetes instance [@burns:KubernetesBook, ch. 16]. The Operator "watches" for events regarding objects in Kubernetes. The events can contain the creation, modification, and deletion of such a watched resource. As an example, the "Postgres"^[<https://www.postgresql.org/>] database operator reacts to the `Postgres` custom entity. When such an entity is created within Kubernetes, the Operator starts and configures the Postgres database system.
 
-In the distributed authentication mesh, an Operator is used to automatically attach a deployment to the mesh and configure the corresponding services accordingly. The Operator modifies the ports of the service to target an Envoy^[<https://www.envoyproxy.io/>] proxy and injects the credential translator into the application (Deployment) in question [@buehler:DistAuthMesh].
+![Basic Buildingblocks in Kubernetes](diagrams/02_operator_in_mesh.puml){#fig:02_operator_in_mesh}
 
-A partial list of operators available to use is viewable on <https://operatorhub.io>.
+In the distributed authentication mesh, an Operator is used to automatically attach a deployment to the mesh and configure the corresponding services accordingly. As {@fig:02_operator_in_mesh} shows, the Operator injects the credential translator and the Envoy^[<https://www.envoyproxy.io/>] proxy into the application (Deployment) and modifies the ports of the service to target the Envoy proxy [@buehler:DistAuthMesh].
 
 ### What is a Sidecar
 
 A Sidecar is an extension to an existing Pod. Some controller (for example an Operator) can inject a Sidecar into a Pod or the Sidecar gets configured in the Deployment in the first place. [@burns:DesignPatterns]
 
+![An example of a Sidecar](images/02_sidecar_example.png){#fig:02_sidecar width=80%}
+
+{@fig:02_sidecar} shows an example of a Sidecar. An application runs a Pod and writes log messages to `/var/logs/app.log` in the shared file system. A specialized "Log Collector" Sidecar can be injected into the Pod and read those log messages. Then the Sidecar forwards the parsed logs to some logging software like Graylog^[<https://www.graylog.org/>].
+
+Sidecars can fulfil multiple use-cases. A service mesh may use Sidecars to provide proxies for service discovery. Logging operators may inject Sidecars into applications to grab and parse logs from applications. Sidecars are a symbiotic extension to an application [@burns:KubernetesBook, ch. 5].
+
 ## Security, Trust Zones, and Secure Communication
+
+The distributed authentication mesh is a security application. Therefore, security is one of the main focus in this work. This section gives an overview of the relevant topics to understand further security related concepts. More in-depth knowledge is provided in {@sec:implementation}.
 
 ### The CIA Triad
 
@@ -53,3 +61,17 @@ A Sidecar is an extension to an existing Pod. Some controller (for example an Op
 ### Zones and Zero Trust
 
 ### Securing Communication between Parties
+
+The key argument of the distributed authentication mesh is the possibility to provide a secured identity over a service landscape that has heterogeneous authentication schemes [@buehler:DistAuthMesh].
+
+#### HTTP Basic Authentication
+
+The "Basic" authentication scheme is defined in **RFC7617**. `Basic` is a trivial authentication scheme which provides an extremely low security when used without HTTPS. Even with HTTPS, Basic Authentication does not provide solid security for applications. It does not use any real form of encryption, nor can any party validate the source of the data. To transmit basic credentials, the username and the password are combined with a colon (`:`) and then encoded with Base64. The encoded result is transmitted via the HTTP header `Authorization` and the prefix `Basic` [@RFC7617].
+
+#### OpenID Connect
+
+OpenID Connect (OIDC) is not defined in an RFC. The specification is provided by the OpenID Foundation (OIDF). OIDC extends OAuth, which is defined by **RFC6749**. The OAuth framework only defines the authorization part and how access is granted to data and applications. OAuth does not define how the credentials are transmitted [@RFC6749].
+
+![OIDC code authorization flow [@spec:OIDC]. Only contains the credential flow, without the explicit OAuth part. OAuth handles the authorization whereas OIDC handles the authentication.](diagrams/02_oidc_code_flow.puml){#fig:02_oidc_code_flow short-caption="OpenID Connect (OIDC) Authorization Code Flow"}
+
+{@fig:02_oidc_code_flow} shows an example where a user wants to access a protected application. The user is forwarded to an external login page (Identity Provider) and enters his credentials. When they are correct, the user gets redirected to the web application with an authorization code. The code is used to fetch an access and ID token for the user. These tokens identify, authenticate and authorize the user. The application is now able to provide the access token to the API (Relying Party). The API itself is able to verify the presented token to validate and authorize the user.

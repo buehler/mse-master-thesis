@@ -1,0 +1,28 @@
+@startuml
+!theme cerulean-outline
+
+participant "Kubernetes API" as api
+participant "Operator" as op
+participant "Deployment" as dep
+participant "Service" as svc
+
+op -> api : Watch for Changes
+activate api
+
+api -> op : Notify about Deployment
+activate op
+alt if relevant
+op -> dep : Inject Envoy / Translator
+end
+deactivate op
+
+api -> op : Notify about Service
+activate op
+alt if relevant
+op -> svc : Reconfigure Ports
+end
+deactivate op
+
+deactivate api
+
+@enduml
