@@ -50,9 +50,9 @@ The final demo application is the **oidc_provider**. It is based on a Node.js pa
 
 ## The Rust Programming Language
 
-To achieve the goals of this work, the programming language "Rust" provides the necessary features to implement the authentication mesh. Rust itself is a multi-paradigm language that supports object-oriented features as well as functional components. Rust allows low-level memory management without the need for garbage collection. To achieve this, Rust uses a special type checking mechanism that allows the compiler to calculate the lifetime of references [@Klabnik:Rust].
+To achieve the goals of this work, the programming language "Rust" provides the necessary features to implement the authentication mesh. Rust itself is a multi-paradigm language that supports object-oriented features as well as functional components. Rust allows low-level memory management without the need for garbage collection and with guaranteed memory safety. To achieve this, Rust uses a special type checking mechanism that allows the compiler to calculate the lifetime of references and the ownership of the data [@Klabnik:Rust].
 
-With the calculation of ownership and the transfer of ownership, Rust ensures that no "null-pointer" can exist, and no object can be manipulated without specifically taking ownership. A formal type system, named "RustBelt", provides insight into the type checking mechanisms of Rust. It further shows that the programming language can guarantee memory safety [@jung:RustBelt].
+With the calculation of ownership and the transfer of ownership, Rust ensures that data can only ever be manipulated by one instance (its owner). No object can be modified without specifically taking ownership. Even though Rust allows an `unsafe` keyword, the code that it contains must be safe and is checked like normal Rust code. This was proven by Ralf Jung et al. by giving a formal safety proof for the language [@jung:RustBelt].
 
 To demonstrate the advantages of Rust, consider the following code examples taken from the article "Safe Systems Programming in Rust" [@jung:Rust]:
 
@@ -83,7 +83,11 @@ The safety of the Rust programming language and the C++-like performance are the
 
 ## Sign and Distribute Contracts between Participants
 
+This section shows how a contract between two parts of the authentication mesh can be created and distributed. To enable the authentication mesh to be truly distributed, the PKI of the separated parts must have a contract to create trust between the parties. Since the PKI creates its own root certificate, the other PKIs must be able to verify and trust the root CA of other PKIs.
+
 ### Using a Block Chain
+
+One possibility to create and share such contracts is the usage of Block Chain.
 
 #### Introduction
 
