@@ -1,0 +1,13 @@
+@startuml
+!theme cerulean-outline
+
+participant "PKI Alice" as a
+participant "PKI Bob" as b
+
+a -> a: Create contract and \nsign it with private key
+a -> b: Send contract to Bob
+b -> b: Verify contract with \npublic key of Alice
+b -> b: Sign contract with \nprivate key of Bob
+b -> a: Return signed contract
+
+@enduml

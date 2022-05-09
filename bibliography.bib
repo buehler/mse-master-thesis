@@ -79,6 +79,22 @@
   url         = {https://tools.ietf.org/html/rfc6749}
 }
 
+@inproceedings{jakobsson:MerkleTree,
+  author    = {Jakobsson, Markus
+               and Leighton, Tom
+               and Micali, Silvio
+               and Szydlo, Michael},
+  editor    = {Joye, Marc},
+  title     = {Fractal Merkle Tree Representation and Traversal},
+  booktitle = {Topics in Cryptology --- CT-RSA 2003},
+  year      = {2003},
+  publisher = {Springer Berlin Heidelberg},
+  address   = {Berlin, Heidelberg},
+  pages     = {314--326},
+  abstract  = {We introduce a technique for traversal of Merkle trees, and propose an efficient algorithm that generates a sequence of leaves along with their associated authentication paths. For one choice of parameters, and a total of N leaves, our technique requires a worst-case computational effort of 2 logN/loglog N hash function evaluations per output, and a total storage capacity of less than 1.5 log2 N/loglogN hash values. This is a simultaneous improvement both in space and time complexity over any previously published algorithm.},
+  isbn      = {978-3-540-36563-1}
+}
+
 @article{jung:Rust,
   title     = {Safe systems programming in Rust},
   author    = {Jung, Ralf and Jourdan, Jacques-Henri and Krebbers, Robbert and Dreyer, Derek},
@@ -117,6 +133,32 @@
   isbn      = {1-7185-0044-0}
 }
 
+@article{koa:ETHERST,
+  author         = {Koa, Chong-Gee and Heng, Swee-Huay and Chin, Ji-Jian},
+  title          = {ETHERST: Ethereum-Based Public Key Infrastructure Identity Management with a Reward-and-Punishment Mechanism},
+  journal        = {Symmetry},
+  volume         = {13},
+  year           = {2021},
+  number         = {9},
+  article-number = {1640},
+  url            = {https://www.mdpi.com/2073-8994/13/9/1640},
+  issn           = {2073-8994},
+  abstract       = {Public Key Infrastructure (PKI) is the fundamental of secure digital communications. It provides a secure means to authenticate identities over the Internet. Symmetric or asymmetric encryption schemes are widely used in identity authentication in any kind of PKI. The conventional PKI has several drawbacks due to the centralized and non-transparent design. Several recent research works utilize blockchain technology to overcome the limitations of conventional implementations of PKI. Blockchain-based PKI integrates blockchain technology with PKI to form a new type of decentralized PKI (DPKI). Several works utilize the currency property in blockchains to implement the reward-and-punishment mechanism. In this paper, we propose a smart contract-based PKI which utilizes the Ethereum smart contract to build a new type of blockchain-based PKI with the reward-and-punishment mechanism using ERC-20 tokens. It has several advantages over previous implementations of similar research that use Ethereum’s main currency—Ether.},
+  doi            = {10.3390/sym13091640}
+}
+
+@article{lin:BlockchainSecurityIssues,
+  title   = {A survey of blockchain security issues and challenges.},
+  author  = {Lin, Iuon-Chang and Liao, Tzu-Chun},
+  journal = {International Journal of Network Security},
+  volume  = {19},
+  number  = {5},
+  doi     = {10.6633/IJNS},
+  pages   = {653--659},
+  year    = {2017},
+  issn    = {1816-353X}
+}
+
 @article{mallik:MITM,
   title   = {Man-in-the-middle-attack: Understanding in simple words},
   author  = {Mallik, Avijit},
@@ -141,6 +183,16 @@
   url         = {https://tools.ietf.org/html/rfc8693}
 }
 
+@article{nofer:blockchain,
+  title     = {Blockchain},
+  author    = {Nofer, Michael and Gomber, Peter and Hinz, Oliver and Schiereck, Dirk},
+  journal   = {Business \& Information Systems Engineering},
+  volume    = {59},
+  number    = {3},
+  pages     = {183--187},
+  year      = {2017},
+  publisher = {Springer}
+}
 @techreport{RFC7617,
   author      = {Reschke, Julian},
   title       = {The {'Basic'} {HTTP} Authentication Scheme},
@@ -203,4 +255,29 @@
   isbn      = {978-1-4302-6817-8},
   doi       = {10.1007/978-1-4302-6817-8_4},
   url       = {https://doi.org/10.1007/978-1-4302-6817-8_4}
+}
+
+@article{spinellis:Git,
+  author  = {Spinellis, Diomidis},
+  journal = {IEEE Software},
+  title   = {Git},
+  year    = {2012},
+  volume  = {29},
+  number  = {3},
+  pages   = {100-101},
+  doi     = {10.1109/MS.2012.61}
+}
+
+@article{zheng:SmartContracts,
+  title    = {An overview on smart contracts: Challenges, advances and platforms},
+  journal  = {Future Generation Computer Systems},
+  volume   = {105},
+  pages    = {475-491},
+  year     = {2020},
+  issn     = {0167-739X},
+  doi      = {https://doi.org/10.1016/j.future.2019.12.019},
+  url      = {https://www.sciencedirect.com/science/article/pii/S0167739X19316280},
+  author   = {Zibin Zheng and Shaoan Xie and Hong-Ning Dai and Weili Chen and Xiangping Chen and Jian Weng and Muhammad Imran},
+  keywords = {Smart contract, Blockchain, Cryptocurrency, Decentralization},
+  abstract = {Smart contract technology is reshaping conventional industry and business processes. Being embedded in blockchains, smart contracts enable the contractual terms of an agreement to be enforced automatically without the intervention of a trusted third party. As a result, smart contracts can cut down administration and save services costs, improve the efficiency of business processes and reduce the risks. Although smart contracts are promising to drive the new wave of innovation in business processes, there are a number of challenges to be tackled. This paper presents a survey on smart contracts. We first introduce blockchains and smart contracts. We then present the challenges in smart contracts as well as recent technical advances. We also compare typical smart contract platforms and give a categorization of smart contract applications along with some representative examples.}
 }
