@@ -1,0 +1,26 @@
+@startuml
+!theme cerulean-outline
+
+skinparam object {
+    AttributeFontColor #000000
+}
+
+object PKI_A {
+    public key
+    private key
+}
+
+object Contract {
+    pub key PKI A
+    pub key PKI B
+}
+
+object PKI_B {
+    public key
+    private key
+}
+
+PKI_A --> Contract : Public Key of Certificate
+PKI_B -> Contract
+
+@enduml

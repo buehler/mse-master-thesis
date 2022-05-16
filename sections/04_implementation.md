@@ -144,3 +144,30 @@ The basic principle is depicted in {@fig:04_git_repo}. A central git repository 
 With a central repository, other security concerns arise. The repository is not crucial for the communication between participants, but it is relevant for the management of the contracts. While a denial of service attack may not impact the communication itself, it can disable the possibility to check for revoked contracts. Furthermore, the history of a git repository is not secure since the clients can hold a local clone.
 
 ## Define the Contract
+
+When considering all options in the previous section, the distribution via a secured git repository seems to be a valid compromise. It does not require payment of blockchain gas fees nor the setup of a private blockchain. Furthermore, it does provide the possibility to create and revoke contracts while not being the single point of failure if the server does not respond for a certain time period. However, the central repository is not secure against denial of service attacks. Such attacks can disable the possibility to check for contract updates.
+
+The most basic information that is required in the trust contract is the public certificate of the PKI. The public certificate is the root certificate of the specific trust zone. When both parties have the public key of the other party, they are able to verify certificates of the other PKI and therefore are enabled to create mTLS (mutual TLS) connections. The usage of mTLS in the authentication mesh does ensure that only trusted connections are allowed and all other attempts to connect to a service are rejected. This further enables the authentication mesh to guarantee that only valid participants can send the custom HTTP header that authenticates the user.
+
+![Trust Contract between PKIs](diagrams/04_define_contract.puml){#fig:04_define_contract}
+
+The contract between two parties is quite simple. As {@fig:04_define_contract} shows, the only parts required to form a contract is the public key of the respective partners. With the public key, either PKI can verify the other PKI's certificates and thus allow an mTLS connection.
+
+To enable serialization and to create a data scheme for the contracts, Protobuf^[<https://developers.google.com/protocol-buffers>] is used. Protobuf is a remote procedure call (RPC) framework that defines the messages and calls in a `proto` file. These files can be used to create client implementations and server stubs for programming languages.
+
+```protobuf
+message Participant {
+    string name = 1;
+    string public_key = 2;
+}
+
+message Contract {
+    repeated Participant participants = 1;
+}
+```
+
+The proto definition above shows the structure of a contract. In principle, a contract is just a list of participants that trust each other. A participant may be involved in multiple contracts. All contracts that include the own participant, are fetched and installed into the local trust store. As soon as this is done, the Envoy proxy is able to connect to the services with mTLS. The contract could be extended with other functionality such as conditional access rules.
+
+## Implementing a Federation Module
+
+TODO.
