@@ -145,7 +145,7 @@ With a central repository, other security concerns arise. The repository is not 
 
 ## Define the Contract
 
-When considering all options in the previous section, the distribution via a secured git repository seems to be a valid compromise. It does not require payment of blockchain gas fees nor the setup of a private blockchain. Furthermore, it does provide the possibility to create and revoke contracts while not being the single point of failure if the server does not respond for a certain time period. However, the central repository is not secure against denial of service attacks. Such attacks can disable the possibility to check for contract updates.
+When considering all options in the previous section, the distribution a compromise between fetching contracts and having a master access point seems to be a valid option. It does not require payment of blockchain gas fees nor the setup of a private blockchain. Furthermore, it does provide the possibility to create and revoke contracts while not being the single point of failure if the server does not respond for a certain time period. However, the central repository is not secure against denial of service attacks. Such attacks can disable the possibility to check for contract updates.
 
 The most basic information that is required in the trust contract is the public certificate of the PKI. The public certificate is the root certificate of the specific trust zone. When both parties have the public key of the other party, they are able to verify certificates of the other PKI and therefore are enabled to create mTLS (mutual TLS) connections. The usage of mTLS in the authentication mesh does ensure that only trusted connections are allowed and all other attempts to connect to a service are rejected. This further enables the authentication mesh to guarantee that only valid participants can send the custom HTTP header that authenticates the user.
 
@@ -159,6 +159,7 @@ To enable serialization and to create a data scheme for the contracts, Protobuf^
 message Participant {
     string name = 1;
     string public_key = 2;
+    string hash = 3;
 }
 
 message Contract {
@@ -168,6 +169,101 @@ message Contract {
 
 The proto definition above shows the structure of a contract. In principle, a contract is just a list of participants that trust each other. A participant may be involved in multiple contracts. All contracts that include the own participant, are fetched and installed into the local trust store. As soon as this is done, the Envoy proxy is able to connect to the services with mTLS. The contract could be extended with other functionality such as conditional access rules.
 
-## Implementing a Federation Module
+## Implementing a Contract Repository
 
-TODO.
+The implementation of the contract repository resides in the GitHub repository "<https://github.com/WirePact/k8s-contract-repository>". The contract repository consists of two parts: "API" and "GUI". The API is a gRPC based application that provides the means to fetch, create, and revoke contracts. The GUI is a web application that allows direct access to that API with a web browser.
+
+In contrast to a git based approach that is described in the previous sections, the local or Kubernetes storage provides a deterministic approach to store the contracts. Further, it improves the testability of the overall system. Using a git repository to store the contracts would not improve the security nor the distribution of the system.
+
+The contracts do not contain any sensitive information. Therefore, the API does not need to encrypt them in any way. The contracts can be stored in two possible ways: "Local" and "Kubernetes". While the local storage repository just uses the local file system to store the serialized proto files, the "Kubernetes" storage adapter uses Kubernetes Secrets to store the contracts.
+
+```rust
+async fn get_certificates(
+    &self,
+    request: Request<GetCertificatesRequest>,
+) -> Result<Response<GetCertificatesResponse>, Status> {
+    debug!("Create Certificate Chain for client.");
+    let request = request.into_inner();
+    let participant_hash = match request.participant_identifier {
+        None => {
+            return Err(Status::failed_precondition(
+                "no participant_identifier given",
+            ))
+        }
+        Some(ParticipantIdentifier::Hash(h)) => h,
+        Some(ParticipantIdentifier::PublicKey(key)) =>
+        participant_hash(&key).map_err(|e| {
+            Status::failed_precondition(
+                format!("Provided public key is not valid: {}", e)
+            )
+        })?,
+    };
+
+    let certificates = self
+        .storage
+        .involved_participants(&participant_hash)
+        .await
+        .map_err(|e| Status::internal(
+            format!("Internal server error: {}", e)
+        ))?
+        .iter()
+        .map(|p| p.public_key.clone())
+        .collect::<Vec<Vec<u8>>>();
+
+    Ok(Response::new(GetCertificatesResponse { certificates }))
+}
+```
+
+The function above is the core function for the contract provider. The requester can either provide a public key or a hash of the public key. The function then returns the public keys of all participants that are involved in the contract. With that information, the contract provider can locally store all public certificates that they are allowed to communicate with.
+
+The GUI application is based on the "Lit"^[<https://lit.dev/>] framework, which uses native web components to create applications instead of an engine like "React" and "Angular". Web components are a mix between different technologies to create reusable custom HTML elements. They consist of three main technologies ("Custom HTML Elements", "Shadow DOM", and "HTML Templates") to create reusable elements with encapsulated functionality [@mdn:WebComponents].
+
+```typescript
+import { html, css, LitElement } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+
+@customElement('demo-element')
+export class DemoElement extends LitElement {
+  static styles = css`
+    p {
+      color: pink;
+    }
+  `;
+
+  @property()
+  name = 'World';
+
+  render() {
+    return html`<p>Hello ${this.name}!</p>`;
+  }
+}
+```
+
+The code above shows a custom "demo-element" that just prints "Hello World!" in pink. Note that the CSS style is not interfering with any other styles. The CSS block is encapsulated in this particular component only. To use the component above, one needs to include the "demo-element" in their HTML code.
+
+```html
+<div>
+  <demo-element></demo-element>
+</div>
+```
+
+The HTML above will render the demo element component inside the `<div>` and print "Hello World!" in pink. If multiple of these components are rendered, each has its own root DOM such that there is no interference between them.
+
+## Implementing a Contract Provider
+
+The contract provider is an application that fetches the contracts from the repository in a defined interval. The implementation can be found on the GitHub repository "<https://github.com/WirePact/k8s-contract-provider>". During each interval, the provider executes the following steps in order:
+
+1. Connect to its own PKI and the contract repository.
+2. Check if the public key of the PKI is stored, if not, download and store it.
+3. Check if a client certificate and key are stored, if not, create a key and fetch a certificate from the PKI.
+4. Fetch all public certificates that the "own PKI" is involved it and store the certificates.
+
+Like other applications in this set, the provider is able to store the certificates in a local or Kubernetes storage adapter. The main goal of the provider is to fetch all public keys of participating PKIs to enable mutual TLS (mTLS) connections between participants.
+
+Since there are multiple possible ways to inject additional trusted root certificates (all participant PKIs), the provider does only store the certificate in the defined storage adapter. In Kubernetes and its ingress controllers, the TLS context must be configured to use the certificate, the key, and the trusted root certificates. The NGINX ingress controller must know where the client certificate resides to connect to an internal service.
+
+## Trusted Communication between Applications
+
+With the Distributed Authentication Mesh and the additional extensions of the previous sections, we are now able to create a fully trusted communication between applications. Even if the applications are not running in the same trust context. The distributed authentication mesh provides the means to create a signed identity that can be used to authenticate a user [@buehler:DistAuthMesh]. The common identity allows participating systems to restore required authorization information for the targeted service [@buehler:CommonIdentity]. The contract repository and provider now allow the PKIs to form a trust contract with each other. This in turn allows services to create mTLS connections to each other.
+
+The secured connection proofs, that the PKIs are trusted and therefore no further encryption for the common identity is required. With the contracts, only participating services can request the contracts they are involved in. The mTLS connection will not be established if the service is not involved in the contract.

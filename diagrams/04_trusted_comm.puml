@@ -1,0 +1,37 @@
+@startuml C4_Elements
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!theme cerulean-outline
+
+Person(user, "User")
+Person(admin, "Admin")
+
+System(repo, "Contract Repository", "Manages the contracts between trust zones")
+
+Boundary(t1, "Trust Zone 1") {
+    Container(pki1, "Public Key Infrastructure", "PKI", "Manages certificates in zone")
+    Container(g1, "Gateway", "", "Allows access to the zone")
+    Container(app1, "Application", "", "Provides the web application in question")
+    Container(p1, "Contract Provider", "", "Provides participating contracts")
+}
+
+Boundary(t2, "Trust Zone 2") {
+    Container(pki2, "Public Key Infrastructure", "PKI", "Manages certificates in zone")
+    Container(g2, "Gateway", "", "Allows access to the zone")
+    Container(api2, "API", "", "Provides service in question")
+    Container(p2, "Contract Provider", "", "Provides participating contracts")
+}
+
+Rel(admin, repo, "Administers the repository")
+
+Rel(user, g1, "User accesses web application via gateway")
+Rel(g1, app1, "Gateway forwards request to application")
+
+Rel(p1, repo, "asdf")
+Rel(p2, repo, "asdf")
+
+' Person(personAlias, "Label", "Optional Description")
+' Container(containerAlias, "Label", "Technology", "Optional Description")
+' System(systemAlias, "Label", "Optional Description")
+
+' Rel(personAlias, containerAlias, "Label", "Optional Technology")
+@enduml
