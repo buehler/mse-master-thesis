@@ -1,0 +1,11 @@
+@startuml
+!theme cerulean-outline
+
+(*) --> "Connect to own PKI"
+--> "Connect to repository"
+--> "Check public key of PKI"
+--> "Check client certificate\nand private key"
+--> "Fetch all involved\ncertificates from repository"
+--> (*)
+
+@enduml

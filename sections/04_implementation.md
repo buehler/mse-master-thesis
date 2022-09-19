@@ -2,7 +2,7 @@
 
 # Creating a Trust Context for the Authentication Mesh {#sec:implementation}
 
-This section gives an overview of the used demo applications, the programming language Rust, and several security topics that are relevant for the implementation of the authentication mesh. Furthermore, the implementation of the shared trust context is described.
+This section gives an overview of the used demo applications, the programming language Rust, and security topics that are relevant for the implementation of the authentication mesh. Furthermore, the section describes the implementation of the trust contract and the relation to the authentication mesh.
 
 ## Demo Applications
 
@@ -19,11 +19,13 @@ secure.GET("swapi/people", getPeopleFromSwapi)
 router.OPTIONS("/swapi/people", cors)
 ```
 
-The static website **basic_auth_app** provides a trivial way of accessing any basic protected API. The site runs within an NGINX and contains minimal code. Since this site is hosted statically and does not call API endpoints through some backend logic, it is not possible to adhere to the `HTTP_PROXY` environment variable to route traffic through a specific proxy.
+The code above shows the implementation of the HTTP Basic Authentication in the Go application. The `gin.BasicAuth` function is used to create a middleware that is applied to the `secure` group. The middleware checks the HTTP request for the `Authorization` header and validates the credentials against the given accounts. The `gin.Accounts` is a map that contains username / password combinations. The `getPeopleFromSwapi` function is called if the authentication was successful.
 
-In contrast to the basic auth app, the **basic_auth_backend_app** is an `ASP.NET` application that also uses the HTTP Basic mechanism to authenticate requests. The application runs in an ASP.NET context. Thus, it is possible to respect the `HTTP_PROXY` variable and route traffic through a specific proxy.
+The static website **basic_auth_app** provides a trivial way of accessing any basic protected API. The site runs within an NGINX and contains minimal code. Since this site is hosted statically and does not call API endpoints through some backend logic, it is not possible to adhere to the `HTTP(S)_PROXY` environment variable to route traffic through a specific proxy.
 
-To provide a more complex authentication scheme, the **oidc_api** authenticates requests against its API via OAuth2.0. When the API receives an access token from a client, it uses token introspection (defined by **RFC7662**) to validate the token and authenticate the user [@RFC7662]. The API needs an issuer, a client ID, and a client secret to validate the given tokens. The configuration of the C\# application is done as follows:
+In contrast to the basic auth app, the **basic_auth_backend_app** is an `ASP.NET` application that also uses the HTTP Basic mechanism to authenticate requests. The application runs in an ASP.NET context. Thus, it is possible to respect the `HTTP_PROXY` and `HTTPS_PROXY` variable and route traffic through a specific proxy. The application shows a trivial GUI in which the user can specify an API endpoint and a username / password combination.
+
+To provide a more complex authentication scheme, the **oidc_api** authenticates requests against its API via OAuth2.0. When the API receives an access token from a client, it uses token introspection (defined by **RFC7662**) to validate the token and authenticate the user [@RFC7662]. The API needs an issuer, a client ID, and a client secret to validate the given tokens.
 
 ```csharp
 builder.Services
@@ -44,7 +46,9 @@ builder.Services
     });
 ```
 
-To complement the OIDC API, an **oidc_app** provides the means to access an OIDC (OAuth) protected API via an application. This [Next.js](https://nextjs.org/) application authenticates users against the OIDC provider and then renders a simple page. Since this is a hosted application, the `HTTP_PROXY` is respected.
+The code above shows the configuration of the C\# API application. It enables the API to verify an incoming access token by using the introspection endpoint of the OIDC provider. The introspection endpoint is defined in **RFC7662** [@RFC7662].
+
+To complement the OIDC API, an **oidc_app** provides the means to access an OIDC (OAuth) protected API via an application. This [Next.js](https://nextjs.org/) application authenticates users against the OIDC provider and then renders a simple page. Since this is a hosted application, the `HTTP_PROXY` is respected. The app calls the API and attaches the access token in the `HTTP Authroization` header. The API validates the token and returns the requested data or denies the request.
 
 The final demo application is the **oidc_provider**. It is based on a Node.js package that provides OIDC server capabilities. This identity provider allows any user with any password and thus is not suitable for production environments. The provider supports OAuth 2.0 Token Exchange (**RFC8693**) to enable the proxy applications to fetch an access token for a specific user [@RFC8693].
 
@@ -105,9 +109,9 @@ One possible way to create trust between the arbitrary PKIs in the authenticatio
 
 ![Blockchain Smart Contract between PKIs](diagrams/04_blockchain_contract.puml){#fig:04_blockchain_contract}
 
-{@fig:04_blockchain_contract} shows the necessary steps to form trust between two PKIs in the authentication mesh. Since all operations are performed on a blockchain, the contract and the steps to form it are verified by other participants as well.
+{@fig:04_blockchain_contract} shows the necessary steps to form trust between two PKIs in the authentication mesh. Since all operations are performed on a blockchain, the contract and the steps to create it are verified by other participants as well.
 
-With the smart contract, both parties can exchange their public key material and form a trust anchor between them without the need of a third party authority. As soon as the contract is voided by any of the parties, the trust anchor is revoked.
+With the smart contract, both parties can exchange their public key material and generate a trust anchor between them without the need of a third party authority. As soon as the contract is voided by any of the parties, the trust anchor is revoked.
 
 #### Using a Blockchain PKI to Create Certificates
 
@@ -145,7 +149,7 @@ With a central repository, other security concerns arise. The repository is not 
 
 ## Define the Contract
 
-When considering all options in the previous section, the distribution a compromise between fetching contracts and having a master access point seems to be a valid option. It does not require payment of blockchain gas fees nor the setup of a private blockchain. Furthermore, it does provide the possibility to create and revoke contracts while not being the single point of failure if the server does not respond for a certain time period. However, the central repository is not secure against denial of service attacks. Such attacks can disable the possibility to check for contract updates.
+When considering all options in the previous section, using a compromise between fetching contracts and having a master access point is a valid option. It does not require payment of blockchain gas fees nor the setup of a private blockchain. Furthermore, it does provide the possibility to create and revoke contracts while not being the single point of failure if the server does not respond for a certain time period. However, the central repository is not secure against denial of service attacks. Such attacks can disable the possibility to check for contract updates.
 
 The most basic information that is required in the trust contract is the public certificate of the PKI. The public certificate is the root certificate of the specific trust zone. When both parties have the public key of the other party, they are able to verify certificates of the other PKI and therefore are enabled to create mTLS (mutual TLS) connections. The usage of mTLS in the authentication mesh does ensure that only trusted connections are allowed and all other attempts to connect to a service are rejected. This further enables the authentication mesh to guarantee that only valid participants can send the custom HTTP header that authenticates the user.
 
@@ -171,50 +175,19 @@ The proto definition above shows the structure of a contract. In principle, a co
 
 ## Implementing a Contract Repository
 
-The implementation of the contract repository resides in the GitHub repository "<https://github.com/WirePact/k8s-contract-repository>". The contract repository consists of two parts: "API" and "GUI". The API is a gRPC based application that provides the means to fetch, create, and revoke contracts. The GUI is a web application that allows direct access to that API with a web browser.
+The implementation of the contract repository resides in the GitHub repository <https://github.com/WirePact/k8s-contract-repository>. The contract repository consists of two parts: "API" and "GUI". The API is a gRPC based application that provides the means to fetch, create, and revoke contracts. The GUI is a web application that allows direct access to that API with a web browser.
 
 In contrast to a git based approach that is described in the previous sections, the local or Kubernetes storage provides a deterministic approach to store the contracts. Further, it improves the testability of the overall system. Using a git repository to store the contracts would not improve the security nor the distribution of the system.
 
 The contracts do not contain any sensitive information. Therefore, the API does not need to encrypt them in any way. The contracts can be stored in two possible ways: "Local" and "Kubernetes". While the local storage repository just uses the local file system to store the serialized proto files, the "Kubernetes" storage adapter uses Kubernetes Secrets to store the contracts.
 
-```rust
-async fn get_certificates(
-    &self,
-    request: Request<GetCertificatesRequest>,
-) -> Result<Response<GetCertificatesResponse>, Status> {
-    debug!("Create Certificate Chain for client.");
-    let request = request.into_inner();
-    let participant_hash = match request.participant_identifier {
-        None => {
-            return Err(Status::failed_precondition(
-                "no participant_identifier given",
-            ))
-        }
-        Some(ParticipantIdentifier::Hash(h)) => h,
-        Some(ParticipantIdentifier::PublicKey(key)) =>
-        participant_hash(&key).map_err(|e| {
-            Status::failed_precondition(
-                format!("Provided public key is not valid: {}", e)
-            )
-        })?,
-    };
+![Use-cases for the Contract Repository](diagrams/04_repo_usecases.puml){#fig:04_repo_usecases}
 
-    let certificates = self
-        .storage
-        .involved_participants(&participant_hash)
-        .await
-        .map_err(|e| Status::internal(
-            format!("Internal server error: {}", e)
-        ))?
-        .iter()
-        .map(|p| p.public_key.clone())
-        .collect::<Vec<Vec<u8>>>();
+The use-cases shown in {@fig:04_repo_usecases} show the basic functionality of the contract repository. Admins use the GUI or the gRPC API to create, fetch, and revoke contracts in the system. Providers then use the gRPC API to fetch a list of all involved public certificates. This allows a provider to create a certificate chain that contains all involved parties and therefore allows mTLS connections to all services.
 
-    Ok(Response::new(GetCertificatesResponse { certificates }))
-}
-```
+![Provider fetching relevant contracts from the repository](diagrams/04_repo_get_certs.puml){#fig:04_repo_get_certs}
 
-The function above is the core function for the contract provider. The requester can either provide a public key or a hash of the public key. The function then returns the public keys of all participants that are involved in the contract. With that information, the contract provider can locally store all public certificates that they are allowed to communicate with.
+The application sequence in {@fig:04_repo_get_certs} depicts the process when a provider fetches the relevant list of contracts for itself. The provider calls the repository with its own public certificate (which it fetches from its own PKI). The repository then returns a list of all contracts that the provider is part of.
 
 The GUI application is based on the "Lit"^[<https://lit.dev/>] framework, which uses native web components to create applications instead of an engine like "React" and "Angular". Web components are a mix between different technologies to create reusable custom HTML elements. They consist of three main technologies ("Custom HTML Elements", "Shadow DOM", and "HTML Templates") to create reusable elements with encapsulated functionality [@mdn:WebComponents].
 
@@ -251,12 +224,17 @@ The HTML above will render the demo element component inside the `<div>` and pri
 
 ## Implementing a Contract Provider
 
-The contract provider is an application that fetches the contracts from the repository in a defined interval. The implementation can be found on the GitHub repository "<https://github.com/WirePact/k8s-contract-provider>". During each interval, the provider executes the following steps in order:
+The contract provider is an application that fetches the contracts from the repository in a defined interval. The implementation can be found on the GitHub repository <https://github.com/WirePact/k8s-contract-provider>.
 
-1. Connect to its own PKI and the contract repository.
-2. Check if the public key of the PKI is stored, if not, download and store it.
-3. Check if a client certificate and key are stored, if not, create a key and fetch a certificate from the PKI.
-4. Fetch all public certificates that the "own PKI" is involved it and store the certificates.
+![Activity of the provider during each interval](diagrams/04_provider_interval.puml){#fig:04_provider_interval}
+
+During each interval, the provider executes the activity in {@fig:04_provider_interval}:
+
+1. Connect to its own PKI.
+2. Connect to the contract repository.
+3. Check if the public key of the PKI is stored, if not, download and store it.
+4. Check if a client certificate and key are stored, if not, create a key and fetch a certificate from the PKI.
+5. Fetch all public certificates that the "own PKI" is involved it and store the certificates.
 
 Like other applications in this set, the provider is able to store the certificates in a local or Kubernetes storage adapter. The main goal of the provider is to fetch all public keys of participating PKIs to enable mutual TLS (mTLS) connections between participants.
 
@@ -264,6 +242,12 @@ Since there are multiple possible ways to inject additional trusted root certifi
 
 ## Trusted Communication between Applications
 
-With the Distributed Authentication Mesh and the additional extensions of the previous sections, we are now able to create a fully trusted communication between applications. Even if the applications are not running in the same trust context. The distributed authentication mesh provides the means to create a signed identity that can be used to authenticate a user [@buehler:DistAuthMesh]. The common identity allows participating systems to restore required authorization information for the targeted service [@buehler:CommonIdentity]. The contract repository and provider now allow the PKIs to form a trust contract with each other. This in turn allows services to create mTLS connections to each other.
+With the distributed authentication mesh and the additional extensions of the previous sections, we are now able to create fully trusted communication between applications. Even if the applications are not running in the same trust context. The distributed authentication mesh provides the means to create a signed identity that can be used to authenticate a user [@buehler:DistAuthMesh]. The common identity allows participating systems to restore required authorization information for the targeted service [@buehler:CommonIdentity].
+
+The contract repository and provider now allow the PKIs to form a trust contract with each other. This in turn allows services to create mTLS connections to each other. When participants of the mesh communicate with other services in distant trust contexts, mTLS ensures that only allowed connections can be established. This mitigates the risk of external services forging an identity and connect to internal services.
 
 The secured connection proofs, that the PKIs are trusted and therefore no further encryption for the common identity is required. With the contracts, only participating services can request the contracts they are involved in. The mTLS connection will not be established if the service is not involved in the contract.
+
+![The Contract Repository and the Trust Zones](diagrams/04_trusted_comm_contracts.puml){#fig:04_trusted_comm_contracts}
+
+{@fig:04_trusted_comm_contracts} shows how the systems interact with the contract repository. There are two different trust zones, each of which contains its own "main" PKI. The PKI generate a CA certificate root and create client certificates for the services within the same trust zone. An admin can create a trust contract between the two trust zones and stores the contract in the repository. Contract providers (for each service) can then fetch the contracts and provide a client certificate and a certificate chain to validate incoming client certificates.

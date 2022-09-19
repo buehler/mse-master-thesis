@@ -1,0 +1,8 @@
+@startuml
+!theme cerulean-outline
+
+:Admin: --> (Create a new contract)
+:Admin: --> (Delete a contract)
+:Provider: --> (Get all involved\npublic certificates\nfrom contracts)
+
+@enduml

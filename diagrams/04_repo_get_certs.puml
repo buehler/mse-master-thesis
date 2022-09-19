@@ -1,0 +1,19 @@
+@startuml
+!theme cerulean-outline
+
+participant "Provider" as p
+participant "Repository" as r
+
+p -> r : Get involved contracts\n(Include own public certificate)
+activate r
+    r -> r : Fetch contracts from storage
+    alt Request contains certificate hash
+        r -> r : Extract certificate hash from request
+    else Request contains certificate
+        r -> r : Extract certificate from request
+        r -> r : Create hash from certificate
+    end
+    r -> r : Search all contracts with involved hash
+return Return public certificates
+
+@enduml
