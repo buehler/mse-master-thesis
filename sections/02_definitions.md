@@ -8,13 +8,13 @@ This section provides the scope, context and prerequisite knowledge for this pro
 
 This project builds upon two former projects "Distributed Authentication Mesh" [@buehler:DistAuthMesh] and "Common Identities in a Distributed Authentication Mesh" [@buehler:CommonIdentity]. The past work defined a general concept for distributed authentication [@buehler:DistAuthMesh] and the definition and implementation of a common identity that is shared between the applications in the mesh [@buehler:CommonIdentity].
 
-The goal of this project is to achieve a truly distributed mesh. To reach a distributed state in the mesh and to be able to trust other trust zones, a contract between each zone must exist. This project defines and implements the contract and provides the tools that are necessary to run such a mesh in Kubernetes. In this project, we analyze different options to form a contract between distant parties and define the specific properties of the contract. After the analyzation and definition, an open-source implementation shall show the feasibility and the usability of the distributed authentication mesh.
+The goal of this project is to achieve a truly distributed mesh. To reach a distributed state in the mesh and to be able to trust other trust zones, a contract between each zone must exist. This project defines and implements the contract and provides the tools that are necessary to run such a mesh in Kubernetes. In this project, we analyze different options to form a contract between distant parties and define the specific properties of the contract. After the analyzation and definition, an open-source implementation shall show the feasibility and the usability of the Distributed Authentication Mesh.
 
 Service mesh functionality, such as service discovery even for distant services, is not part of the authentication mesh nor of this project. While the authentication mesh is able to run alongside with a service mesh, it must not interfere with the resolution of the communication. The applications that are part of the mesh must be able to respect the `HTTP_PROXY` and `HTTPS_PROXY` variables, since the Kubernetes Operator will inject those variables into the application. This technique allows the mesh to configure a local sidecar as the proxy for the application.
 
 ## Introduction into Kubernetes
 
-Since the provided implementation of the distributed authentication mesh runs on Kubernetes, this section gives a brief overview of Kubernetes and the used patterns. Kubernetes is a workload manager that can load balance tasks on several nodes (servers). The explained patterns allow developers to extend the basic Kubernetes functionality.
+Since the provided implementation of the Distributed Authentication Mesh runs on Kubernetes, this section gives a brief overview of Kubernetes and the used patterns. Kubernetes is a workload manager that can load balance tasks on several nodes (servers). The explained patterns allow developers to extend the basic Kubernetes functionality.
 
 ### Basic Terminology
 
@@ -38,7 +38,7 @@ An Operator makes use of "Custom Resource Definitions" (CRD) in Kubernetes. Thes
 
 ![Basic Buildingblocks in Kubernetes](diagrams/02_operator_in_mesh.puml){#fig:02_operator_in_mesh}
 
-In the distributed authentication mesh, an Operator is used to automatically attach a deployment to the mesh and configure the corresponding services accordingly. As {@fig:02_operator_in_mesh} shows, the Operator injects the credential translator and the Envoy^[<https://www.envoyproxy.io/>] proxy into the application (Deployment) and modifies the ports of the service to target the Envoy proxy [@buehler:DistAuthMesh].
+In the Distributed Authentication Mesh, an Operator is used to automatically attach a deployment to the mesh and configure the corresponding services accordingly. As {@fig:02_operator_in_mesh} shows, the Operator injects the credential translator and the Envoy^[<https://www.envoyproxy.io/>] proxy into the application (Deployment) and modifies the ports of the service to target the Envoy proxy [@buehler:DistAuthMesh].
 
 ### What is a Sidecar
 
@@ -52,7 +52,7 @@ Sidecars can fulfil multiple use-cases. A service mesh may use Sidecars to provi
 
 ## Security, Trust Zones, and Secure Communication
 
-The distributed authentication mesh is a security application. Therefore, security is one of the main focus in this work. This section gives an overview of the relevant topics to understand further security related concepts. More in-depth knowledge is provided in {@sec:implementation}.
+The Distributed Authentication Mesh is a security application. Therefore, security is one of the main focus in this work. This section gives an overview of the relevant topics to understand further security related concepts. More in-depth knowledge is provided in {@sec:implementation}.
 
 ### The CIA Triad
 
@@ -72,7 +72,7 @@ In contrast to trust zones, "Zero Trust" is a security model that focuses on pro
 
 ### Securing Communication between Parties
 
-The key focus of the distributed authentication mesh is the possibility to provide a secured identity over a service landscape that has heterogeneous authentication schemes [@buehler:DistAuthMesh]. Thus, securing communication between participants is of most utter importance. A wide range of security mechanisms and authentication schemes exist. To demonstrate the distributed authentication mesh and the contracts between the trust zones, the following schemes/techniques are used.
+The key focus of the Distributed Authentication Mesh is the possibility to provide a secured identity over a service landscape that has heterogeneous authentication schemes [@buehler:DistAuthMesh]. Thus, securing communication between participants is of most utter importance. A wide range of security mechanisms and authentication schemes exist. To demonstrate the Distributed Authentication Mesh and the contracts between the trust zones, the following schemes/techniques are used.
 
 #### HTTP Basic Authentication
 

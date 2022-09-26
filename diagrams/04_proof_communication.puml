@@ -1,0 +1,19 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!theme cerulean-outline
+
+Boundary(t1, "Trust Zone Alice") {
+    Container(app, "Application", "", "")
+    Container(envoyApp, "Application Proxy", "Envoy")
+}
+
+Boundary(t2, "Trust Zone Bob") {
+    Container(api, "API", "", "Returns a list of Star Wars characters")
+    Container(envoyApi, "API Proxy", "Envoy")
+}
+
+Rel_D(app, envoyApp, "API Call", "HTTP", "Initiated HTTP call gets forwarded to the HTTP_PROXY")
+Rel_R(envoyApp, envoyApi, "Proxy Communication", "HTTPS / mTLS", "Both proxies communicate with each other via mTLS")
+Rel_U(envoyApi, api, "Final Destination", "HTTP", "Finally, the request is forwarded to the API with credentials")
+
+@enduml

@@ -127,7 +127,7 @@ An example of such a distributed PKI for blockchain is "ETHERST". However, deplo
 
 When considering the CIA triad in {@sec:definitions}, only _integrity_ and _availability_ can be provided. No information that is published to the blockchain is confidential and can be read by all participants in the chain.
 
-While the blockchain approach seems elegant, it also bears some security issues. A blockchain can be attacked by a "majority attack" where an attacker holds more than 51% of the computing power in the blockchain. If this happens, the next calculation for the Proof of Work algorithm can be found faster than the rest of the network is able to validate the calculation. Therefore, an attacker can decide which blocks are valid and which are not [@lin:BlockchainSecurityIssues]. There exist other issues and attack vectors, but the majority attack would be the most threatening one for the distributed authentication mesh.
+While the blockchain approach seems elegant, it also bears some security issues. A blockchain can be attacked by a "majority attack" where an attacker holds more than 51% of the computing power in the blockchain. If this happens, the next calculation for the Proof of Work algorithm can be found faster than the rest of the network is able to validate the calculation. Therefore, an attacker can decide which blocks are valid and which are not [@lin:BlockchainSecurityIssues]. There exist other issues and attack vectors, but the majority attack would be the most threatening one for the Distributed Authentication Mesh.
 
 ### Using a Master Node
 
@@ -242,12 +242,34 @@ Since there are multiple possible ways to inject additional trusted root certifi
 
 ## Trusted Communication between Applications
 
-With the distributed authentication mesh and the additional extensions of the previous sections, we are now able to create fully trusted communication between applications. Even if the applications are not running in the same trust context. The distributed authentication mesh provides the means to create a signed identity that can be used to authenticate a user [@buehler:DistAuthMesh]. The common identity allows participating systems to restore required authorization information for the targeted service [@buehler:CommonIdentity].
+With the Distributed Authentication Mesh and the additional extensions of the previous sections, we are now able to create fully trusted communication between applications. Even if the applications are not running in the same trust context. The Distributed Authentication Mesh provides the means to create a signed identity that can be used to authenticate a user [@buehler:DistAuthMesh]. The common identity allows participating systems to restore required authorization information for the targeted service [@buehler:CommonIdentity].
 
-The contract repository and provider now allow the PKIs to form a trust contract with each other. This in turn allows services to create mTLS connections to each other. When participants of the mesh communicate with other services in distant trust contexts, mTLS ensures that only allowed connections can be established. This mitigates the risk of external services forging an identity and connect to internal services.
-
-The secured connection proofs, that the PKIs are trusted and therefore no further encryption for the common identity is required. With the contracts, only participating services can request the contracts they are involved in. The mTLS connection will not be established if the service is not involved in the contract.
+The contract repository and provider now allow the PKIs to form a trust contract with each other. This in turn allows services to create mTLS connections to each other. When participants of the mesh communicate with other services in distant trust contexts, mTLS ensures that only allowed connections can be established. This mitigates the risk of external services forging an identity and connect to internal services. The secured connection proofs that the PKIs are trusted and therefore no further encryption for the common identity is required. The mTLS connection will not be established if the service is not involved in the contract.
 
 ![The Contract Repository and the Trust Zones](diagrams/04_trusted_comm_contracts.puml){#fig:04_trusted_comm_contracts}
 
 {@fig:04_trusted_comm_contracts} shows how the systems interact with the contract repository. There are two different trust zones, each of which contains its own "main" PKI. The PKI generate a CA certificate root and create client certificates for the services within the same trust zone. An admin can create a trust contract between the two trust zones and stores the contract in the repository. Contract providers (for each service) can then fetch the contracts and provide a client certificate and a certificate chain to validate incoming client certificates.
+
+## Trusted Distributed Authentication Mesh
+
+One issue with the Distributed Authentication Mesh is that the identity of a user is sent to a specific target service. This service has no means to verify that the sender is actually part of the mesh itself [@buehler:CommonIdentity]. Inside the same trust zone, the service can trust the sender if it is not publicly exposed. But, the use-case of the mesh includes communication between different trust zones. Therefore, the service must be able to verify that the sender is part of the mesh. With the mentioned contracts and the contract repository, it is possible for all participants to fetch a list of contracts. The contracts include the public certificates of all participating PKIs. Thus, it is possible for an application to call an API in a distant trust zone and verify that the sender is part of the mesh.
+
+To show and verify the statement, a demo application setup in Docker is provided in the GitHub repository "<https://github.com/WirePact/docker-demo>". This demo proofs that it is possible to create a connection between two applications via mTLS connection.
+
+The Docker demo consists of various containers that are required for the mesh. To verify the setup and the system itself, this section provides a step by step analysis of the demo and the functionality of the mesh in conjunction with the contract repository.
+
+![Trust Zone Alice](diagrams/04_proof_pki_alice.puml){#fig:04_proof_pki_alice}
+
+{@fig:04_proof_pki_alice} shows the setup for the first trust zone, "Trust Zone Alice". It consists of a PKI, a contract provider, the application, an application proxy and the translator for WirePact. The PKI creates its own root certificate authority (CA) and creates a client certificate for the contract provider and the translator. The translator is responsible for the extraction and translation of the WirePact common identity [@buehler:CommonIdentity]. The proxy manages all incoming and outgoing communication of the application itself. To enable general access to the application, a public gateway allows incoming communication and passes it to the application proxy.
+
+![Trust Zone Bob](diagrams/04_proof_pki_bob.puml){#fig:04_proof_pki_bob}
+
+The second trust zone, depicted in {@fig:04_proof_pki_bob}, is similar. It contains the same elements with the exception of a public gateway since the demo system resides in Docker. A real world example would include another gateway that limits the access to other containers in the system.
+
+![Communication between Trust Zones](diagrams/04_proof_communication.puml){#fig:04_proof_communication}
+
+Without a contract, communication as shown in {@fig:04_proof_communication} is not possible. The HTTPS / mTLS connection between the two proxies cannot be established since they have totally different root CAs. To enable communication between the parties, both proxies must now all public certificates of the involved parties to allow verification of the certificates. When the contract is created, the public certificates of both PKIs are inserted and then stored in the contract repository. Both contract providers will fetch the contract and deliver the full certificate chain to their respective proxies. The proxies can now verify the certificates and establish a connection.
+
+![Communication between Trust Zones](images/04_proof_tls_handshake.png){#fig:04_proof_tls_handshake}
+
+To proof that the connection is secured via mTLS, the network traffic of the demo Docker setup was recorded^[With "termshark", a terminal only alternative to Wireshark (<https://github.com/gcla/termshark>)]. {@fig:04_proof_tls_handshake} shows the TLS handshake between the two proxies. All other communication is HTTP, while the communication between the proxies is HTTPS. We can see that the server does present its own certificate accompanied by the certificate request for the client. The client in turn does present its own certificate and thus, the connection is established.

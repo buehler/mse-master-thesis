@@ -1,0 +1,21 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!theme cerulean-outline
+
+Boundary(t1, "Trust Zone Alice") {
+    Container(g, "Gateway", "Public Key Infrastructure", "Manages certificates in zone")
+    Container(pki1, "PKI Alice", "Public Key Infrastructure", "Manages certificates in zone")
+    Container(p1, "Contract Provider", "", "Provides participating contracts")
+    Container(app, "Application", "", "")
+    Container(envoyApp, "Application Proxy", "Envoy")
+    Container(translatorApp, "Application Translator", "WirePact Translator")
+}
+
+Rel_D(g, envoyApp, "Forwards call to proxy")
+BiRel(envoyApp, translatorApp, "external authentication", "gRPC", "Extracts and translates the WirePact identity from the JWT and provides correct authentication information")
+Rel_R(envoyApp, app, "Forwards call after authentication")
+Rel_L(translatorApp, pki1, "Requests certificate")
+Rel_R(p1, envoyApp, "Key Material", "", "Provides key material and certificate chain for all interzonal communication")
+Rel_D(p1, pki1, "Requests certificate")
+
+@enduml
