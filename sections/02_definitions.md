@@ -2,15 +2,15 @@
 
 # Definitions and Clarification of the Scope {#sec:definitions}
 
-This section provides the scope, context and prerequisite knowledge for this project. It also gives an overview of the used technologies as well as an introduction into the security topic of the project. Note that a deeper introduction into other security related technologies is given in the implementation section.
+This section provides the scope, context and prerequisite knowledge for this project. It also gives an overview of the used technologies as well as an introduction into the security topic of the project. Note that a deeper introduction into other security related topics is given in the implementation section.
 
 ## Scope of this Project
 
 This project builds upon two former projects "Distributed Authentication Mesh" [@buehler:DistAuthMesh] and "Common Identities in a Distributed Authentication Mesh" [@buehler:CommonIdentity]. The past work defined a general concept for distributed authentication [@buehler:DistAuthMesh] and the definition and implementation of a common identity that is shared between the applications in the mesh [@buehler:CommonIdentity].
 
-The goal of this project is to achieve a truly distributed mesh. To reach a distributed state in the mesh and to be able to trust other trust zones, a contract between each zone must exist. This project defines and implements the contract and provides the tools that are necessary to run such a mesh in Kubernetes. In this project, we analyze different options to form a contract between distant parties and define the specific properties of the contract. After the analyzation and definition, an open-source implementation shall show the feasibility and the usability of the Distributed Authentication Mesh.
+The goal of this project is to achieve a truly distributed mesh. To reach a distributed state in the mesh and to be able to trust other trust zones, a contract between each zone must exist. This project defines and implements the contract and provides the tools that are necessary to run such a mesh in a Proof of Concept. In this project, we analyze different options to form a contract between distant parties and define the specific properties of the contract. After the analyzation and definition, an open-source implementation shall show the feasibility and the usability of the Distributed Authentication Mesh.
 
-Service mesh functionality, such as service discovery even for distant services, is not part of the authentication mesh nor of this project. While the authentication mesh is able to run alongside with a service mesh, it must not interfere with the resolution of the communication. The applications that are part of the mesh must be able to respect the `HTTP_PROXY` and `HTTPS_PROXY` variables, since the Kubernetes Operator will inject those variables into the application. This technique allows the mesh to configure a local sidecar as the proxy for the application.
+Service mesh functionality, such as service discovery even for distant services, is not part of the authentication mesh nor of this project. While the authentication mesh is able to run alongside with a service mesh, it must not interfere with the resolution of the communication. The applications that are part of the mesh must be able to respect the `HTTP_PROXY` and `HTTPS_PROXY` variables, since the Kubernetes Operator of the mesh will inject those variables into the application. This technique allows the mesh to configure a local sidecar as the proxy for the application.
 
 ## Introduction into Kubernetes
 
@@ -52,7 +52,7 @@ Sidecars can fulfil multiple use-cases. A service mesh may use Sidecars to provi
 
 ## Security, Trust Zones, and Secure Communication
 
-The Distributed Authentication Mesh is a security application. Therefore, security is one of the main focus in this work. This section gives an overview of the relevant topics to understand further security related concepts. More in-depth knowledge is provided in {@sec:implementation}.
+The Distributed Authentication Mesh is a security application. Therefore, security an important topic in this work. This section gives an overview of the relevant topics to understand further security related concepts. More in-depth knowledge is provided in {@sec:implementation}.
 
 ### The CIA Triad
 
@@ -60,13 +60,13 @@ The three pillars of information security: **Confidentiality**, **Integrity**, a
 
 Confidentiality addresses the topic of gaining access where one is not allowed to. If someone is able to read certain information without being authorized to do so, the confidentiality is breached. An example could be that some attacker is able to forge login credentials and thus has access to files they should not be able to see.
 
-Integrity covers proving that some information was not modified. An attacker that is able to modify information in a system, even when the attacker is not able to read the information, the integrity of the information is compromised. For example, with a man in the middle (MITM) attack, the integrity of the communication is corrupted and the attack may forge or change information that the users are sending/receiving [@mallik:MITM].
+Integrity covers proving that some information was not modified. When an attacker is able to modify information in a system, even when the attacker is not able to read the information, the integrity of the information is compromised. For example, with a man in the middle (MITM) attack, the integrity of the communication is corrupted and the attacker may forge or change information that the users are sending/receiving [@mallik:MITM].
 
 Availability handles the possibility to get the information from the particular system. If an attacker can prevent an authorized user to gain access to their information, the availability is impaired. This could happen, if an attacker uses a DDoS (distributed denial of service) attack to prevent access to a resource.
 
 ### Trust Zones and Zero Trust
 
-Trust zones are the areas where applications "can trust each other". When an application verifies the presented credentials of a user and allows a request, it may access other resources (such as APIs) on the users' behalf. When the concept of trust zones is applied, other APIs may trust the original requester that the user has authenticated itself.
+Trust zones are the areas where applications "can trust each other". When an application verifies the presented credentials of a user and allows a request, it may access other resources (such as APIs) on the users' behalf. When the concept of trust zones is applied, other APIs may trust the original requester that the user has authenticated itself. Typically, this is used in microservice architectures where only one point of access (the gateway into the zone) is exposed to the outside world. The APIs behind the application can then share the trust that the gateway created.
 
 In contrast to trust zones, "Zero Trust" is a security model that focuses on protecting (sensitive) data [@iftekhar:ProtectDataWithZeroTrust]. Zero trust assumes that every call could be intercepted by an attacker. Thus, for the concept of zero trust, it is irrelevant if the application resides in an enterprise network or if it is publicly accessible. As a consequence of zero trust, user credentials must be presented and validated for each access to a resource [@rose:zero-trust].
 
@@ -89,3 +89,7 @@ OpenID Connect (OIDC) is not defined in an RFC. The specification is provided by
 #### Mutual Transport Layer Security (mTLS)
 
 An mTLS connection is essentially a TLS connection, like in HTTPS requests, but both parties present an X509 certificate. The connection is only allowed to open if both parties present a valid and trusted certificate. Thus, it enables both parties to verify their corresponding partner and prevents man in the middle attacks [@siriwardena:mTLS].
+
+![The mTLS Handshake for Client and Server](diagrams/02_tls_handshake.puml){#fig:02_tls_handshake}
+
+To establish an mTLS connection, the TLS handshake defined in **RFC5246** is used. {@fig:02_tls_handshake} shows such a handshake. The client sends its `Client Hello` and is then greeted by the server with a `Server Hello` response. The server response also includes the servers certificate to authenticate itself. The server requests a certificate from the client in the same response. The client can then verify the certificate of the server and returns its own certificate with other TLS related messages. When both parties verify the identity of the other party, the handshake is completed and the connection is established [@RFC5246]. The biggest advantage of mTLS is that both parties can verify the identity of the other party. Thus, it is not possible to impersonate a client or a server.

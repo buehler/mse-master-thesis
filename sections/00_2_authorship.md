@@ -2,7 +2,7 @@
 
 # Declaration of Authorship {-}
 
-I, Christoph Bühler, declare that this MASTER THESIS titled "TODO" and the work presented in it are my own.
+I, Christoph Bühler, declare that this MASTER THESIS titled "Trust in a Distributed Authentication Mesh" and the work presented in it are my own.
 
 I confirm that:
 

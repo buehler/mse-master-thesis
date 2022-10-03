@@ -240,7 +240,7 @@ Like other applications in this set, the provider is able to store the certifica
 
 Since there are multiple possible ways to inject additional trusted root certificates (all participant PKIs), the provider does only store the certificate in the defined storage adapter. In Kubernetes and its ingress controllers, the TLS context must be configured to use the certificate, the key, and the trusted root certificates. The NGINX ingress controller must know where the client certificate resides to connect to an internal service.
 
-## Trusted Communication between Applications
+## Secure Communication between Applications
 
 With the Distributed Authentication Mesh and the additional extensions of the previous sections, we are now able to create fully trusted communication between applications. Even if the applications are not running in the same trust context. The Distributed Authentication Mesh provides the means to create a signed identity that can be used to authenticate a user [@buehler:DistAuthMesh]. The common identity allows participating systems to restore required authorization information for the targeted service [@buehler:CommonIdentity].
 
@@ -250,7 +250,7 @@ The contract repository and provider now allow the PKIs to form a trust contract
 
 {@fig:04_trusted_comm_contracts} shows how the systems interact with the contract repository. There are two different trust zones, each of which contains its own "main" PKI. The PKI generate a CA certificate root and create client certificates for the services within the same trust zone. An admin can create a trust contract between the two trust zones and stores the contract in the repository. Contract providers (for each service) can then fetch the contracts and provide a client certificate and a certificate chain to validate incoming client certificates.
 
-## Trusted Distributed Authentication Mesh
+## A Trusted Distributed Authentication Mesh
 
 One issue with the Distributed Authentication Mesh is that the identity of a user is sent to a specific target service. This service has no means to verify that the sender is actually part of the mesh itself [@buehler:CommonIdentity]. Inside the same trust zone, the service can trust the sender if it is not publicly exposed. But, the use-case of the mesh includes communication between different trust zones. Therefore, the service must be able to verify that the sender is part of the mesh. With the mentioned contracts and the contract repository, it is possible for all participants to fetch a list of contracts. The contracts include the public certificates of all participating PKIs. Thus, it is possible for an application to call an API in a distant trust zone and verify that the sender is part of the mesh.
 
@@ -270,6 +270,6 @@ The second trust zone, depicted in {@fig:04_proof_pki_bob}, is similar. It conta
 
 Without a contract, communication as shown in {@fig:04_proof_communication} is not possible. The HTTPS / mTLS connection between the two proxies cannot be established since they have totally different root CAs. To enable communication between the parties, both proxies must now all public certificates of the involved parties to allow verification of the certificates. When the contract is created, the public certificates of both PKIs are inserted and then stored in the contract repository. Both contract providers will fetch the contract and deliver the full certificate chain to their respective proxies. The proxies can now verify the certificates and establish a connection.
 
-![Communication between Trust Zones](images/04_proof_tls_handshake.png){#fig:04_proof_tls_handshake}
+![mTLS Connection between Proxies](images/04_proof_tls_handshake.png){#fig:04_proof_tls_handshake}
 
 To proof that the connection is secured via mTLS, the network traffic of the demo Docker setup was recorded^[With "termshark", a terminal only alternative to Wireshark (<https://github.com/gcla/termshark>)]. {@fig:04_proof_tls_handshake} shows the TLS handshake between the two proxies. All other communication is HTTP, while the communication between the proxies is HTTPS. We can see that the server does present its own certificate accompanied by the certificate request for the client. The client in turn does present its own certificate and thus, the connection is established.

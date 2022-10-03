@@ -1,0 +1,13 @@
+@startuml
+!theme cerulean-outline
+
+participant Client as c
+participant Server as s
+
+c -> s: Client Hello
+s -> c: Server Hello, \nCertificate, \nServer Key Exchange, \nCertificate Request, \nServer Hello Done
+c -> s: Certificate, \nClient Key Exchange, \nCertificate Verify, \nChange Cipher Spec, \nFinished
+s -> c: New Session Ticket, \nChange Cipher Spec, \nFinished
+s <-> c: Application Data
+
+@enduml

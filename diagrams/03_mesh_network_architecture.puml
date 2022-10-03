@@ -1,0 +1,21 @@
+@startuml
+!theme cerulean-outline
+
+component "Translator" as t_a
+component "Translator" as t_b
+
+component "Proxy" as p_a
+component "Proxy" as p_b
+
+component "Source" as src
+component "Destination" as dest
+
+t_a <--> p_a : Translation
+t_b <--> p_b : Translation
+
+p_a <-> p_b : Communication
+
+src <--> p_a : Communication
+dest <--> p_b : Communication
+
+@enduml
