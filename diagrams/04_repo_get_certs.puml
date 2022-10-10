@@ -1,10 +1,12 @@
 @startuml
 !theme cerulean-outline
 
+participant "PKI" as pki
 participant "Provider" as p
 participant "Repository" as r
 
-p -> r : Get involved contracts\n(Include own public certificate)
+p -> pki : Get Root CA
+p -> r : Get involved contracts\n(Include own root CA)
 activate r
     r -> r : Fetch contracts from storage
     alt Request contains certificate hash

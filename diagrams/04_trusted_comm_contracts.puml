@@ -16,11 +16,12 @@ Boundary(t2, "Trust Zone 2") {
     Container(p2, "Contract Provider", "", "Provides participating contracts")
 }
 
-Rel(admin, repo, "Administers the repository")
+Rel_R(admin, repo, "Administers the repository")
 
 Rel(p1, repo, "Fetches contracts")
-Rel(p2, repo, "Fetches contracts")
 Rel(pki1, repo, "Contains info in contract")
-Rel(pki2, repo, "Contains info in contract")
+
+Rel_U(p2, repo, "Fetches contracts")
+Rel_U(pki2, repo, "Contains info in contract")
 
 @enduml
