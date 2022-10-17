@@ -36,7 +36,7 @@ Site Reliability Engineering (SRE) is a specific software engineering technique 
 
 An Operator makes use of "Custom Resource Definitions" (CRD) in Kubernetes. These definitions extend the Kubernetes API with custom objects that can be manipulated by a user of the Kubernetes instance [@burns:KubernetesBook, ch. 16]. The Operator "watches" for events regarding objects in Kubernetes. The events can contain the creation, modification, and deletion of such a watched resource. As an example, the "Postgres"^[<https://www.postgresql.org/>] database operator reacts to the `Postgres` custom entity. When such an entity is created within Kubernetes, the Operator starts and configures the Postgres database system.
 
-![Basic Buildingblocks in Kubernetes](diagrams/02_operator_in_mesh.puml){#fig:02_operator_in_mesh}
+![Interaction of the Distributed Authentication Mesh Operator in Kubernetes](diagrams/02_operator_in_mesh.puml){#fig:02_operator_in_mesh}
 
 In the Distributed Authentication Mesh, an Operator is used to automatically attach a deployment to the mesh and configure the corresponding services accordingly. As {@fig:02_operator_in_mesh} shows, the Operator injects the credential translator and the Envoy^[<https://www.envoyproxy.io/>] proxy into the application (Deployment) and modifies the ports of the service to target the Envoy proxy [@buehler:DistAuthMesh].
 
@@ -44,7 +44,7 @@ In the Distributed Authentication Mesh, an Operator is used to automatically att
 
 A Sidecar is an extension to an existing Pod. Some controller (for example an Operator) can inject a Sidecar into a Pod or the Sidecar gets configured in the Deployment in the first place. [@burns:DesignPatterns]
 
-![An example of a Sidecar](images/02_sidecar_example.png){#fig:02_sidecar_example width=80%}
+![An Example of a Sidecar](images/02_sidecar_example.png){#fig:02_sidecar_example width=80%}
 
 {@fig:02_sidecar_example} shows an example of a Sidecar. An application runs a Pod and writes log messages to `/var/logs/app.log` in the shared file system. A specialized "Log Collector" Sidecar can be injected into the Pod and read those log messages. Then the Sidecar forwards the parsed logs to some logging software like Graylog^[<https://www.graylog.org/>].
 

@@ -8,7 +8,7 @@ However, both projects are only distributed within the same trust zone^[A space 
 
 In the current state, applications within the same trust zone can communicate with each other and a user only needs to enter his credentials (such as username/password) once. When the user is authenticated, the identity (user ID) is encoded in a JWT for other outgoing calls and the receiving party can validate that the user is already authenticated. Then the receiver uses the transmitted information to encode the identity in the corresponding authentication scheme of the destination [@buehler:DistAuthMesh; @buehler:CommonIdentity].
 
-![Multiple trust zones that share a contract between them. The contract enables the authentication mesh to verify callers from other zones.](images/01_distribution.png){#fig:01_distribution short-caption="Multiple Trust Zones with Contract"}
+![Multiple trust zones that share a contract between them. The contract enables the authentication mesh to verify callers from other zones.](images/01_distribution.png){#fig:01_distribution short-caption="Multiple Trust Zones with Contract" width="80%"}
 
 To achieve true distribution, a contract, as shown in {@fig:01_distribution}, must exist. The contact defines how multiple trust zones can share trust with each other. This project shall define and implement the contract between multiple authentication meshes, such that the Distributed Authentication Mesh can communicate with other trusted zones. To complement the conceptual addition, an open-source implementation of the contract and its components is provided. To demonstrate the contract and the distribution of the authentication, a Proof of Concept (PoC) for Docker is created.
 

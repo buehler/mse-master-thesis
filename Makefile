@@ -59,7 +59,6 @@ build_pdf:
 
 pdf: build_pdf
 
-
 sections/%.md: force
 	@echo "Build section $@ to pdf"
 	@pandoc $(filter-out --metadata-file=./metadata.yaml,$(common_build_args)) \

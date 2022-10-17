@@ -7,7 +7,8 @@
     "nodemon": "nodemon --config nodemon.json --exec \"make html\"",
     "nodemon:pdf": "nodemon --config nodemon.json --exec \"make pdf\"",
     "server": "http-server public -o",
-    "pdf": "make pdf"
+    "pdf": "make pdf",
+    "pdf:docker": "docker run --rm -it -v $(pwd):/data ghcr.io/buehler/mse-pandoc:latest make pdf"
   },
   "dependencies": {
     "concurrently": "6.2.1",
