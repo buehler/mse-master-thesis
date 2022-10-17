@@ -20,7 +20,7 @@ Since the provided implementation of the Distributed Authentication Mesh runs on
 
 To understand further concepts and Kubernetes in general, some basic terminology and concepts around Kubernetes must be understood.
 
-![Basic Buildingblocks in Kubernetes](images/02_kubernetes_parts.png){#fig:02_kubernetes_parts}
+![Basic Buildingblocks in Kubernetes](images/02_kubernetes_parts.png){#fig:02_kubernetes_parts width="50%"}
 
 A **Pod** is the smallest possible deployment unit and contains a collection of application containers and volumes [@burns:KubernetesBook, ch. 5]. {@fig:02_kubernetes_parts} shows a Pod that contains two containers. Containers are definitions for workloads that must be run. To enable Kubernetes to run such a container, a containerized application and a container image must be present. Such an image-format is "Docker"^[<https://www.docker.com/>], a container runtime for various platforms.
 
@@ -90,6 +90,6 @@ OpenID Connect (OIDC) is not defined in an RFC. The specification is provided by
 
 An mTLS connection is essentially a TLS connection, like in HTTPS requests, but both parties present an X509 certificate. The connection is only allowed to open if both parties present a valid and trusted certificate. Thus, it enables both parties to verify their corresponding partner and prevents man in the middle attacks [@siriwardena:mTLS].
 
-![The mTLS Handshake for Client and Server](diagrams/02_tls_handshake.puml){#fig:02_tls_handshake}
+![The mTLS Handshake for Client and Server](diagrams/02_tls_handshake.puml){#fig:02_tls_handshake width="40%"}
 
 To establish an mTLS connection, the TLS handshake defined in **RFC5246** is used. {@fig:02_tls_handshake} shows such a handshake. The client sends its `Client Hello` and is then greeted by the server with a `Server Hello` response. The server response also includes the servers certificate to authenticate itself. The server requests a certificate from the client in the same response. The client can then verify the certificate of the server and returns its own certificate with other TLS related messages. When both parties verify the identity of the other party, the handshake is completed and the connection is established [@RFC5246]. The biggest advantage of mTLS is that both parties can verify the identity of the other party. Thus, it is not possible to impersonate a client or a server.

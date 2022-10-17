@@ -97,7 +97,7 @@ One possibility to create and share such contracts is the usage of Blockchain. B
 
 #### Introduction into Blockchain
 
-![Basic Principle of a Blockchain](images/04_blockchain_overview.png){#fig:04_blockchain_overview}
+![Basic Principle of a Blockchain](images/04_blockchain_overview.png){#fig:04_blockchain_overview width="80%"}
 
 The basic principle, stated in {@fig:04_blockchain_overview}, shows how new blocks in the chain come to existence. The first block is called the "genesis block" and has no information about any previous blocks. All blocks down the chain contain information about the previous block. Along with the previous hash, each block contains a hashed history of all transactions [@nofer:blockchain].
 
@@ -109,7 +109,7 @@ A blockchain allows transactions without the need for a third party authority. T
 
 One possible way to create trust between the arbitrary PKIs in the authentication mesh is the use of a smart contract. The PKIs of the authentication mesh would be connected to a blockchain that spans over all participants in the mesh.
 
-![Blockchain Smart Contract between PKIs](diagrams/04_blockchain_contract.puml){#fig:04_blockchain_contract}
+![Blockchain Smart Contract between PKIs](diagrams/04_blockchain_contract.puml){#fig:04_blockchain_contract width="60%"}
 
 {@fig:04_blockchain_contract} shows the necessary steps to form trust between two PKIs in the authentication mesh. Since all operations are performed on a blockchain, the contract and the steps to create it are verified by other participants as well.
 
@@ -119,7 +119,7 @@ With the smart contract, both parties can exchange their public key material and
 
 Another possibility to create trust between the distributed participants of the authentication mesh is the usage of a distributed PKI (dPKI). The distributed PKI would act as a mediator between the different PKI that exist in each trust zone.
 
-![Using a Decentralized Public Key Infrastructure (dPKI) as root PKI to ensure that all participants are able to create trust between them.](images/04_blockchain_dPKI.png){#fig:04_blockchain_dPKI short-caption="Decentralized Public Key Infrastructure on Blockchain"}
+![Using a Decentralized Public Key Infrastructure (dPKI) as root PKI to ensure that all participants are able to create trust between them.](images/04_blockchain_dPKI.png){#fig:04_blockchain_dPKI short-caption="Decentralized Public Key Infrastructure on Blockchain" width="70%"}
 
 With a dPKI deployed on a blockchain, as shown in {@fig:04_blockchain_dPKI}, each specialized PKI in a trust zone could request a certificate that acts as the root for the trust zone of that PKI. The PKI fulfills its role as key material provider for the specific zone and has knowledge about the other PKIs in the mesh through the blockchain. If two zones are to trust each other, a configuration on the blockchain defines that two parties must create trust. Since the specific PKIs already have the information about the other certificates, they can validate the public key material of services in other zones.
 
@@ -135,7 +135,7 @@ While the blockchain approach seems elegant, it also bears some security issues.
 
 A more centralized approach to form trust between participants is the usage of a master node.
 
-![Centralized Trust Manager for Participants](images/04_central_master.png){#fig:04_central_master}
+![Centralized Trust Manager for Participants](images/04_central_master.png){#fig:04_central_master width="60%"}
 
 {@fig:04_central_master} shows the basic concept. While the trust zones remain decentralized, the master node must be central to manage the trust between the PKIs. The master node creates contracts between the PKIs of the participants. This could happen via API calls or via configuration in a secure storage location. However, this creates a single point of failure since the master node must also validate the trust. Trust revocation is done via the master node as well. If the master node is the target of an attack, the whole trust in the mesh is threatened. The master node is the single point of failure for inter-zonal communication.
 
@@ -143,7 +143,7 @@ A more centralized approach to form trust between participants is the usage of a
 
 A third option to establish contracts between PKIs in the authentication mesh is the usage of a git repository. Git is a distributed version control system. It consists of a central repository server and a set of clients that clone the repository locally [@spinellis:Git].
 
-![Use Git Repository for Trust Management](images/04_git_repo.png){#fig:04_git_repo}
+![Use Git Repository for Trust Management](images/04_git_repo.png){#fig:04_git_repo width="60%"}
 
 The basic principle is depicted in {@fig:04_git_repo}. A central git repository acts as distribution node for contracts between the parties and therefore between the trust zones. The contract is either created via some application or via manual creation by an administrator. The contract is then pushed into the central repository. All participants can periodically check for new or revoked contracts in the repository. A contract is only valid as long as the file is physically present in the repository. To revoke a contract, the file is deleted from the repository.
 
@@ -155,7 +155,7 @@ When considering all options in the previous section, using a combination betwee
 
 The most basic information that is required in the trust contract is the public certificate of the PKIs. The public certificate is the root certificate of the specific trust zone. When both parties have the public key of the other party, they are able to verify certificates of the other PKI and therefore are enabled to create mTLS (mutual TLS) connections. The usage of mTLS in the authentication mesh does ensure that only trusted connections are allowed and all other attempts to connect to a service are rejected. This further enables the authentication mesh to guarantee that only trusted participants can send the custom HTTP header that authenticates the user.
 
-![Trust Contract between PKIs](diagrams/04_define_contract.puml){#fig:04_define_contract}
+![Trust Contract between PKIs](diagrams/04_define_contract.puml){#fig:04_define_contract width="60%"}
 
 The contract between two parties is simple. As {@fig:04_define_contract} shows, the only parts required to form a contract is the public key of the respective partners. With the public key, either PKI can verify the other PKIs certificates and thus allow an mTLS connection. The contract can be extended in future work to enable other use-cases like rule based access control or other security features.
 
@@ -236,7 +236,7 @@ The GUI application of the contract repository will allow administrators to crea
 
 The contract provider is an application that fetches the contracts from the repository in a defined interval. The implementation can be found on the GitHub repository <https://github.com/WirePact/k8s-contract-provider>.
 
-![Activity of the provider during each interval](diagrams/04_provider_interval.puml){#fig:04_provider_interval}
+![Activity of the provider during each interval](diagrams/04_provider_interval.puml){#fig:04_provider_interval width="30%"}
 
 During each interval, the provider executes the steps in {@fig:04_provider_interval}:
 
@@ -312,7 +312,7 @@ With the Distributed Authentication Mesh and the additional extensions of this p
 
 The contract repository and provider now allow the PKIs to form a trust contract with each other. This in turn allows services to establish mTLS connections with each other. When participants of the mesh communicate with other services in distant trust contexts, mTLS ensures that only allowed connections can be created. This mitigates the risk of external services forging an identity and connect to internal services. The secured connection proofs that the PKIs are trusted and therefore no further encryption for the common identity is required. The mTLS connection cannot be successfully created if the service (respectively its PKI) is not involved in a contract with the destination.
 
-![The Contract Repository and the Trust Zones](diagrams/04_trusted_comm_contracts.puml){#fig:04_trusted_comm_contracts}
+![The Contract Repository and the Trust Zones](diagrams/04_trusted_comm_contracts.puml){#fig:04_trusted_comm_contracts width="80%"}
 
 {@fig:04_trusted_comm_contracts} shows how the parts interact with the contract repository. There are two different trust zones, each of which contains its own "main" PKI. The PKI generate a CA certificate root and create client certificates for the services within the same trust zone. An admin can create a trust contract between the two trust zones and stores the contract in the repository. Contract providers (for each service) can then fetch the contracts and provide a client certificate and a certificate chain to validate incoming client certificates.
 
@@ -332,7 +332,7 @@ The Docker demo consists of various containers that are required for the mesh. T
 
 The second trust zone, depicted in {@fig:04_proof_pki_bob}, is similar. It contains the same elements except for a public gateway since the demo system resides in Docker. A real world example would include another gateway that limits the access to other containers in the system.
 
-![Communication between Trust Zones](diagrams/04_proof_communication.puml){#fig:04_proof_communication}
+![Communication between Trust Zones](diagrams/04_proof_communication.puml){#fig:04_proof_communication width="80%"}
 
 Without a contract, communication as shown in {@fig:04_proof_communication} is not possible. The HTTPS / mTLS connection between the two proxies cannot be established since they have totally different root CAs. To enable communication between the parties, both proxies must now all public certificates of the involved parties to allow verification of the certificates. When the contract is created, the public certificates of both PKIs are inserted and then stored in the contract repository. Both contract providers will fetch the contract and deliver the full certificate chain to their respective proxies. The proxies can now verify the certificates and establish a connection.
 
