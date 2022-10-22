@@ -4,89 +4,6 @@
 
 This section gives an overview of the created demo applications, the programming language Rust, and security topics that are relevant for the implementation of the authentication mesh. Furthermore, the section describes the implementation of the trust contract and the relation to the authentication mesh.
 
-## Demo Applications
-
-To demonstrate and test the implementation of the trust context and the mesh, multiple demo applications are used. All applications are hosted on GitHub in the open-source repository <https://github.com/WirePact/demo-applications>. There exist six different applications that are described below.
-
-The **basic_auth_api** is a simple API application written in Go^[<https://go.dev/>]. It uses HTTP Basic Authentication (RFC7617) to authenticate calls against its endpoints. The API can be configured with three different environment variables (`PORT`, `AUTH_USERNAME`, and `AUTH_PASSWORD`). An HTTP web framework package "[Gin](https://github.com/gin-gonic/gin)" provides the HTTP middleware for Go.
-
-```go
-router := gin.Default()
-secure := router.Group("/", gin.BasicAuth(gin.Accounts{
-	config.Username: config.Password,
-}))
-secure.GET("swapi/people", getPeopleFromSwapi)
-router.OPTIONS("/swapi/people", cors)
-```
-
-The code above shows the implementation of the HTTP Basic Authentication in the Go application. The `gin.BasicAuth` function is used to create a middleware that is applied to the `secure` group. The middleware checks the HTTP request for the `Authorization` header and validates the credentials against the given accounts. The named map `gin.Accounts` is a map that contains username / password combinations. The `getPeopleFromSwapi` function is called if the authentication was successful.
-
-The static website **basic_auth_app** provides a trivial way of accessing any basic protected API. The site runs within an NGINX and contains minimal code. Since this site is hosted statically and does not call API endpoints through some backend logic, it is not possible to adhere to the `HTTP(S)_PROXY` environment variable to route traffic through a specific proxy.
-
-In contrast to the basic auth app, the **basic_auth_backend_app** is an `ASP.NET` application that also uses the HTTP Basic mechanism to authenticate requests. However, the application runs in an ASP.NET context. Thus, it is possible to respect the `HTTP_PROXY` and `HTTPS_PROXY` variable and route traffic through a specific proxy. The application shows a trivial GUI in which the user can specify an API endpoint and a username / password combination.
-
-To provide a more complex authentication scheme, the **oidc_api** authenticates requests against its API via `OAuth2.0`. When the API receives an access token from a client, it uses token introspection (defined by **RFC7662**) to validate the token and authenticate the user [@RFC7662]. The API needs an issuer, a client ID, and a client secret to validate the given tokens.
-
-```csharp
-builder.Services
-    .AddAuthentication("token")
-    .AddOAuth2Introspection("token", o =>
-    {
-        var section = builder.Configuration.GetSection("Oidc");
-        o.Authority = section.GetValue<string>("Issuer");
-        o.ClientId = section.GetValue<string>("ClientId");
-        o.ClientSecret = section.GetValue<string>("ClientSecret");
-        o.DiscoveryPolicy = new()
-        {
-            RequireHttps = false,
-            ValidateEndpoints = false,
-            ValidateIssuerName = false,
-            RequireKeySet = false,
-        };
-    });
-```
-
-The code above shows the configuration of the C\# API application. It enables the API to verify an incoming access token by using the introspection endpoint of the OIDC provider. The introspection endpoint is defined in **RFC7662** [@RFC7662].
-
-To complement the OIDC API, an **oidc_app** provides the means to access an OIDC (OAuth2.0) protected API via an application. This [Next.js](https://nextjs.org/) application authenticates users against the OIDC provider and then renders a simple page. Since this is a hosted application, the `HTTP(S)_PROXY` variable is respected. The app calls the API and attaches the access token in the `HTTP Authorization` header. The API validates the token and returns the requested data or denies the request.
-
-The final demo application is the **oidc_provider**. It is based on a Node.js package that provides OIDC server capabilities. This identity provider allows any user with any password and thus is not suitable for production environments. The provider supports OAuth 2.0 Token Exchange (**RFC8693**) to enable the proxy applications to fetch an access token for a specific user [@RFC8693].
-
-## The Rust Programming Language
-
-To achieve the goals of this work, the programming language "Rust" provides a solid base to implement the contract repository and other system relevant parts. Rust itself is a multi-paradigm language that supports object-oriented features as well as functional components. Rust further allows low-level memory management without the need for garbage collection. Despite the absence of garbage collection, Rust guarantees memory safety. To achieve it, Rust uses a special type checking mechanism that allows the compiler to calculate the lifetime of references and the ownership of the data [@Klabnik:Rust].
-
-Since the compiler of Rust ensures that data can only be modified once and that code has no side effects, the language enables developers to create reliable and secure software. The strict compiler and the vast speed of the compiled results were the primary reasons for choosing Rust as the programming language for this work. The Rust language has comparable performance to C and C++ and is therefore suitable for fast reacting systems like the authentication mesh [@ivanov:IsRustFast].
-
-With the calculation of ownership and the transfer of ownership, Rust ensures that data can only ever be manipulated by one instance (its owner). No object can be modified without specifically taking ownership. Even though Rust allows an `unsafe` keyword, the code that it contains must be safe and is checked like normal Rust code. This was proven by Ralf Jung et al. by giving a formal safety proof for the language (and the `unsafe` parts in its standard library) [@jung:RustBelt].
-
-To demonstrate the advantages of Rust and its compiler, consider the following code examples taken from the article "Safe Systems Programming in Rust" [@jung:Rust]:
-
-```c++
-std::vector<int> vec {10, 11};
-// Create a pointer into the vector.
-int *vectorPointer = &vec[1];
-v.push_back(12);
-
-// Bug ("use-after-free")
-std::cout << *vectorPointer;
-```
-
-The C++ code above creates a vector of integers with two initial elements. Next, a pointer to the second element in the growable array is created. When the new content (`12`) is added to the vector, the backing memory buffer may be reallocated to allow the new object to be stored. The pointer now still points to the old memory address and therefore is a "dangling pointer" [@jung:Rust].
-
-```rust
-let mut vec = vec![10, 11];
-let vector_pointer = &mut vec[1];
-vec.push(12);
-
-// This creates a compile error, since the vector is moved.
-println!("{}", *vector_pointer);
-```
-
-The Rust compiler does check usage of data and references statically and therefore does not allow the use of a dangling pointer. The compiler will give the following error message for the code above: "cannot borrow vec as mutable more than once at a time." [@jung:Rust].
-
-During this project, all existing elements of the Distributed Authentication Mesh were rewritten to the Rust programming language. Since the communication between the moving parts of the system use gRPC to communicate, the framework or language behind the system does not really matter.
-
 ## Sign and Distribute Contracts between Participants
 
 This section shows how a contract between two parts of the authentication mesh can be created and distributed. To enable the authentication mesh to be truly distributed, the PKI of each trust zone must have a contract to create trust between them. Since each PKI creates its own root certificate, other PKIs must be able to verify and trust the root CA of other PKIs.
@@ -174,6 +91,89 @@ message Contract {
 ```
 
 The `proto` definition above shows the structure of a contract. In principle, a contract is just a list of participants that trust each other. A participant may be involved in multiple contracts. All contracts that include the own participant, are fetched and installed into the local trust store. As soon as this is done, the Envoy proxy of the authentication mesh is able to connect to distant services with an mTLS connection.
+
+## The Rust Programming Language
+
+To achieve the goals of this work, the programming language "Rust" provides a solid base to implement the contract repository and other system relevant parts. Rust itself is a multi-paradigm language that supports object-oriented features as well as functional components. Rust further allows low-level memory management without the need for garbage collection. Despite the absence of garbage collection, Rust guarantees memory safety. To achieve it, Rust uses a special type checking mechanism that allows the compiler to calculate the lifetime of references and the ownership of the data [@Klabnik:Rust].
+
+Since the compiler of Rust ensures that data can only be modified once and that code has no side effects, the language enables developers to create reliable and secure software. The strict compiler and the vast speed of the compiled results were the primary reasons for choosing Rust as the programming language for this work. The Rust language has comparable performance to C and C++ and is therefore suitable for fast reacting systems like the authentication mesh [@ivanov:IsRustFast].
+
+With the calculation of ownership and the transfer of ownership, Rust ensures that data can only ever be manipulated by one instance (its owner). No object can be modified without specifically taking ownership. Even though Rust allows an `unsafe` keyword, the code that it contains must be safe and is checked like normal Rust code. This was proven by Ralf Jung et al. by giving a formal safety proof for the language (and the `unsafe` parts in its standard library) [@jung:RustBelt].
+
+To demonstrate the advantages of Rust and its compiler, consider the following code examples taken from the article "Safe Systems Programming in Rust" [@jung:Rust]:
+
+```c++
+std::vector<int> vec {10, 11};
+// Create a pointer into the vector.
+int *vectorPointer = &vec[1];
+v.push_back(12);
+
+// Bug ("use-after-free")
+std::cout << *vectorPointer;
+```
+
+The C++ code above creates a vector of integers with two initial elements. Next, a pointer to the second element in the growable array is created. When the new content (`12`) is added to the vector, the backing memory buffer may be reallocated to allow the new object to be stored. The pointer now still points to the old memory address and therefore is a "dangling pointer" [@jung:Rust].
+
+```rust
+let mut vec = vec![10, 11];
+let vector_pointer = &mut vec[1];
+vec.push(12);
+
+// This creates a compile error, since the vector is moved.
+println!("{}", *vector_pointer);
+```
+
+The Rust compiler does check usage of data and references statically and therefore does not allow the use of a dangling pointer. The compiler will give the following error message for the code above: "cannot borrow vec as mutable more than once at a time." [@jung:Rust].
+
+During this project, all existing elements of the Distributed Authentication Mesh were rewritten to the Rust programming language. Since the communication between the moving parts of the system use gRPC to communicate, the framework or language behind the system does not really matter.
+
+## Demo Applications
+
+To demonstrate and test the implementation of the trust context and the mesh, multiple demo applications are used. All applications are hosted on GitHub in the open-source repository <https://github.com/WirePact/demo-applications>. There exist six different applications that are described below.
+
+The **basic_auth_api** is a simple API application written in Go^[<https://go.dev/>]. It uses HTTP Basic Authentication (RFC7617) to authenticate calls against its endpoints. The API can be configured with three different environment variables (`PORT`, `AUTH_USERNAME`, and `AUTH_PASSWORD`). An HTTP web framework package "[Gin](https://github.com/gin-gonic/gin)" provides the HTTP middleware for Go.
+
+```go
+router := gin.Default()
+secure := router.Group("/", gin.BasicAuth(gin.Accounts{
+	config.Username: config.Password,
+}))
+secure.GET("swapi/people", getPeopleFromSwapi)
+router.OPTIONS("/swapi/people", cors)
+```
+
+The code above shows the implementation of the HTTP Basic Authentication in the Go application. The `gin.BasicAuth` function is used to create a middleware that is applied to the `secure` group. The middleware checks the HTTP request for the `Authorization` header and validates the credentials against the given accounts. The named map `gin.Accounts` is a map that contains username / password combinations. The `getPeopleFromSwapi` function is called if the authentication was successful.
+
+The static website **basic_auth_app** provides a trivial way of accessing any basic protected API. The site runs within an NGINX and contains minimal code. Since this site is hosted statically and does not call API endpoints through some backend logic, it is not possible to adhere to the `HTTP(S)_PROXY` environment variable to route traffic through a specific proxy.
+
+In contrast to the basic auth app, the **basic_auth_backend_app** is an `ASP.NET` application that also uses the HTTP Basic mechanism to authenticate requests. However, the application runs in an ASP.NET context. Thus, it is possible to respect the `HTTP_PROXY` and `HTTPS_PROXY` variable and route traffic through a specific proxy. The application shows a trivial GUI in which the user can specify an API endpoint and a username / password combination.
+
+To provide a more complex authentication scheme, the **oidc_api** authenticates requests against its API via `OAuth2.0`. When the API receives an access token from a client, it uses token introspection (defined by **RFC7662**) to validate the token and authenticate the user [@RFC7662]. The API needs an issuer, a client ID, and a client secret to validate the given tokens.
+
+```csharp
+builder.Services
+    .AddAuthentication("token")
+    .AddOAuth2Introspection("token", o =>
+    {
+        var section = builder.Configuration.GetSection("Oidc");
+        o.Authority = section.GetValue<string>("Issuer");
+        o.ClientId = section.GetValue<string>("ClientId");
+        o.ClientSecret = section.GetValue<string>("ClientSecret");
+        o.DiscoveryPolicy = new()
+        {
+            RequireHttps = false,
+            ValidateEndpoints = false,
+            ValidateIssuerName = false,
+            RequireKeySet = false,
+        };
+    });
+```
+
+The code above shows the configuration of the C\# API application. It enables the API to verify an incoming access token by using the introspection endpoint of the OIDC provider. The introspection endpoint is defined in **RFC7662** [@RFC7662].
+
+To complement the OIDC API, an **oidc_app** provides the means to access an OIDC (OAuth2.0) protected API via an application. This [Next.js](https://nextjs.org/) application authenticates users against the OIDC provider and then renders a simple page. Since this is a hosted application, the `HTTP(S)_PROXY` variable is respected. The app calls the API and attaches the access token in the `HTTP Authorization` header. The API validates the token and returns the requested data or denies the request.
+
+The final demo application is the **oidc_provider**. It is based on a Node.js package that provides OIDC server capabilities. This identity provider allows any user with any password and thus is not suitable for production environments. The provider supports OAuth 2.0 Token Exchange (**RFC8693**) to enable the proxy applications to fetch an access token for a specific user [@RFC8693].
 
 ## Implementing the Contract Repository
 
