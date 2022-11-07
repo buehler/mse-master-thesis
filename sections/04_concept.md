@@ -40,13 +40,19 @@ Another possibility to create trust between the distributed participants of the 
 
 With a dPKI deployed on a blockchain, as shown in {@fig:04_blockchain_dPKI}, each specialized PKI in a trust zone could request a certificate that acts as the root for the trust zone of that PKI. The PKI fulfills its role as key material provider for the specific zone and has knowledge about the other PKIs in the mesh through the blockchain. If two zones are to trust each other, a configuration on the blockchain defines that two parties must create trust. Since the specific PKIs already have the information about the other certificates, they can validate the public key material of services in other zones.
 
-An example of such a distributed PKI for blockchain is "ETHERST". However, deploying the PKI on the blockchain has the disadvantage of raising prices for the PKI. The participants need to pay the Ethereum gas fees to request and sign a certificate in ETHERST [@koa:ETHERST].
+An example of such a distributed PKI for blockchain is "ETHERST". ETHERST is a blockchain-based, distributed PKI that runs on the Etherium Virtual Machine (EVM) and uses the internal currency of the EVM, Ether, as a payment method. However, using the blockchain as PKI has the disadvantage of the gas fees. Gas fees are the prices that need to be paid for each transaction on a blockchain. The participants of the authentication mesh would need to pay the gas fees to request, sign, and trust a certificate in ETHERST [@koa:ETHERST]. Since the gas fees are paid in Ether, the prices of the gas fees are volatile and will change over time. This makes the usage of ETHERST as a PKI for the authentication mesh unreliable.
 
-#### Security Issues with Blockchain
+#### Security Concerns with Blockchain
 
 When considering the CIA triad in {@sec:definitions}, only _integrity_ and _availability_ can be provided. No information that is published to the blockchain is confidential and can be read by all participants in the chain.
 
 While the blockchain approach seems elegant, it also bears some security issues. A blockchain can be attacked by a "majority attack" where an attacker holds more than 51% of the computing power in the blockchain. If this happens, the next calculation for the Proof of Work algorithm can be found faster than the rest of the network is able to validate the calculation. Therefore, an attacker can decide which blocks are valid and which are not [@lin:BlockchainSecurityIssues]. There exist other issues and attack vectors, but the majority attack would be the most threatening one for the Distributed Authentication Mesh.
+
+Since September 2022, the Etherium blockchain changed from Proof of Work (PoW) to Proof of Stake (PoS). PoS is a consensus algorithm that does not require the participants to perform expensive calculations to validate a block. Instead, the participants stake a certain amount of Ether to validate a block. The more Ether a participant stakes, the more likely it is that the participant will be chosen to validate a block. This makes the blockchain more secure against a majority attack, but also vulnerable against _nothing at stake_ or _long-range_ attacks [@li:PoSSecurity].
+
+The _nothing at stake_ attack allows a node to create conflicting blocks on all forks of the chain without any risk of losing their stake. This attack targets the efficiency of the system and slows the consensus time [@li:PoSSecurity].
+
+The _long-range_ (or history) attack targets the history of the blockchain and tries to alter it. The attack allows creating forks from past blocks and enable a takeover of the current blockchain with a past majority stake [@li:PoSSecurity].
 
 ### Using a Master Node
 
@@ -64,7 +70,7 @@ A third option to establish contracts between PKIs in the authentication mesh is
 
 The basic principle is depicted in {@fig:04_git_repo}. A central git repository acts as distribution node for contracts between the parties and therefore between the trust zones. The contract is either created via some application or via manual creation by an administrator. The contract is then pushed into the central repository. All participants can periodically check for new or revoked contracts in the repository. A contract is only valid as long as the file is physically present in the repository. To revoke a contract, the file is deleted from the repository.
 
-With a central repository, other security concerns arise. The repository is not crucial for the communication between participants, but it is relevant for the management of the contracts. While a denial of service attack may not impact the communication itself, it can disable the possibility to check for revoked contracts. Furthermore, the history of a git repository is not secure since the clients can hold a local clone.
+With a central repository, other security concerns arise. The repository is not crucial for the communication between participants, but it is relevant for the management of the contracts. While a denial of service attack may not impact the communication itself, it can disable the possibility to check for revoked contracts. Also, the history of the repository could be a target for an attacker. If the attacker is able to alter the history of the repository, the contracts could be altered as well.
 
 ## Define the Contract
 
