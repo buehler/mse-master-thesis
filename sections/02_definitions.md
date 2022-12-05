@@ -8,13 +8,13 @@ This section provides the scope, context and prerequisite knowledge for this pro
 
 This project builds upon two former projects "Distributed Authentication Mesh" [@buehler:DistAuthMesh] and "Common Identities in a Distributed Authentication Mesh" [@buehler:CommonIdentity]. The past work defined a general concept for distributed authentication [@buehler:DistAuthMesh] and the definition and implementation of a common identity that is shared between the applications in the mesh [@buehler:CommonIdentity].
 
-The goal of this project is to achieve a truly distributed mesh. To reach a distributed state in the mesh and to be able to trust other trust zones, a contract between each zone must exist. This project defines and implements the contract and provides the tools that are necessary to run such a mesh in a Proof of Concept. In this project, we analyze different options to form a contract between distant parties and define the specific properties of the contract. After the analyzation and definition, an open-source implementation shall show the feasibility and the usability of the Distributed Authentication Mesh.
+The goal of this project is to achieve a truly distributed mesh. To reach a distributed state in the mesh and to be able to trust other trust zones, a contract between each zone must exist. This project defines and implements the contract and provides the tools that are necessary to run such a mesh in a Proof of Concept. In this project, we analyze different options to form a contract between distant parties and define the specific properties of the contract. After the analysis and definition, an open-source implementation shall show the feasibility and the usability of the Distributed Authentication Mesh.
 
-Service mesh functionality, such as service discovery even for distant services, is not part of the authentication mesh nor of this project. While the authentication mesh is able to run alongside with a service mesh, it must not interfere with the resolution of the communication. The applications that are part of the mesh must be able to respect the `HTTP_PROXY` and `HTTPS_PROXY` variables, since the Kubernetes Operator of the mesh will inject those variables into the application. This technique allows the mesh to configure a local sidecar as the proxy for the application.
+Service mesh functionality, such as service discovery, even for distant services, is not part of the authentication mesh nor of this project. While the authentication mesh is able to run alongside with a service mesh, it must not interfere with the resolution of the communication. The applications that are part of the mesh must be able to respect the `HTTP_PROXY` and `HTTPS_PROXY` variables, since the Kubernetes Operator of the mesh will inject those variables into the application. This technique allows the mesh to configure a local sidecar as the proxy for the application.
 
 ## Introduction into Kubernetes
 
-Since the provided implementation of the Distributed Authentication Mesh runs on Kubernetes, this section gives a brief overview of Kubernetes and the used patterns. Kubernetes is a workload manager that can load balance tasks on several nodes (servers). The explained patterns allow developers to extend the basic Kubernetes functionality.
+Since the provided implementation of the Distributed Authentication Mesh runs on Kubernetes, this section gives a brief overview of Kubernetes and the used patterns. The PoC of this thesis runs purely in Docker, however, past work created a Kubernetes Operator that allows running the mesh in a Kubernetes Cluster. Kubernetes is a workload manager that can load balance tasks on several nodes (servers). The explained patterns allow developers to extend the basic Kubernetes functionality.
 
 ### Basic Terminology
 
@@ -50,7 +50,7 @@ A Sidecar is an extension to an existing Pod. Some controller (for example an Op
 
 Sidecars can fulfil multiple use-cases. A service mesh may use Sidecars to provide proxies for service discovery. Logging operators may inject Sidecars into applications to grab and parse logs from applications. Sidecars are a symbiotic extension to an application [@burns:KubernetesBook, ch. 5].
 
-## Security, Trust Zones, and Secure Communication
+## Introduction into Security, Trust Zones, and Secure Communication
 
 The Distributed Authentication Mesh is a security application. Therefore, security an important topic in this work. This section gives an overview of the relevant topics to understand further security related concepts. More in-depth knowledge is provided in {@sec:implementation}.
 
@@ -93,3 +93,33 @@ An mTLS connection is essentially a TLS connection, like in HTTPS requests, but 
 ![The mTLS Handshake for Client and Server](diagrams/02_tls_handshake.puml){#fig:02_tls_handshake width="40%"}
 
 To establish an mTLS connection, the TLS handshake defined in **RFC5246** is used. {@fig:02_tls_handshake} shows such a handshake. The client sends its `Client Hello` and is then greeted by the server with a `Server Hello` response. The server response also includes the servers certificate to authenticate itself. The server requests a certificate from the client in the same response. The client can then verify the certificate of the server and returns its own certificate with other TLS related messages. When both parties verify the identity of the other party, the handshake is completed and the connection is established [@RFC5246]. The biggest advantage of mTLS is that both parties can verify the identity of the other party. Thus, it is not possible to impersonate a client or a server.
+
+## Introduction into the Distributed Authentication Mesh
+
+The concept of the "Distributed Authentication Mesh", as described in [@buehler:DistAuthMesh], is a practical attempt to shared authentication in a distributed environment. With modern cloud environments like Kubernetes or Docker, many problems such as the discovery of services and data transfer are solved in general [@burns:KubernetesBook, ch. 7]. Modern cloud-native applications (CNA) still have to deal with authentication. Legacy software, however, often only supports older authentication schemes. But with the current state in digitalization, they tend to be moved into the cloud as well. This leads to the issue of mismatching authentication, as the old authentication schemes are not compatible with the new cloud-native applications.
+
+### Accessing Legacy Software with Cloud-Native Applications
+
+The Distributed Authentication Mesh addresses the conversion of user credentials from one authentication scheme to another. When multiple services or applications with diverging authentication schemes are required to communicate, the credentials (access token, user/password combination) need to be translated.
+
+![The Problem with Diverging Authentication Mechanisms](images/02_is_dist_auth_mesh.png){#fig:02_is_dist_auth_mesh width=85%}
+
+{@fig:02_is_dist_auth_mesh} shows an example: a service with the capability of handling OIDC access tokens wants to communicate with a legacy service that is only able to handle HTTP Basic Authentication. Either software is required to receive a change in code to be able to communicate with the other one.
+
+To translate this into a real world example: a legacy customer relationship management (CRM) system, that has its own web GUI as well as an API is deployed on a Kubernetes cluster. The API is able to handle HTTP Basic Authentication but no modern schemes. The company in question creates a modern web application with React that supports OIDC. The company already has an Identity and Access Management (IAM) system deployed and uses that system for other applications as well. The modern web application communicates with a modern API that understands OIDC but in turn must fetch some data about a customer from the legacy CRM system. The legacy CRM system is not able to handle OIDC and thus the modern web application must translate the OIDC access token into an HTTP Basic Authentication header.
+
+For various reasons like budget, time or technical risks and skill availability, legacy applications are not always refactored before they are deployed into the cloud. Following the assumption about the reasons, the code change will most likely be introduced into the modern application, because it is presumably better maintainable and deployable than the legacy software. The modern software now receives changes that are not part of its core functionality and may introduce new bugs and security vulnerabilities. In small applications that consist of one or two services, implementing this conversion may be a feasible option. However, in large applications with several services, this is error-prone and time-consuming work. In practice, the stated scenario was encountered at various points in time. Legacy services may not be the primary use case. Another example is the usage of third-party applications without any access to the source code.
+
+### The Contrast to Security Assertion Markup Language
+
+"Security Assertion Markup Language" (SAML) is a Federated Identity Management (FIdM) standard. In modern applications, SAML, OAuth, and OIDC are the most popular FIdM standards. SAML is an XML framework for transmitting user data, such as authentication, entitlement, and other attributes, between services and organizations [@naik:SAMLandFIdM].
+
+In contrast to SAML, the Distributed Authentication Mesh does not require any changes to the legacy software. SAML does not cover the case when the authentication mechanisms do not match. In order for SAML to work, all participating applications and services need to be able to understand SAML. The concept of the authentication mesh attaches additional software parts, that can be tested and deployed separately, in conjunction with the usage of the `HTTP_PROXY` environment variable. This allows the translation of the authentication method without any changes to the legacy software.
+
+### The Concept of Distributed Authentication
+
+Describe the solution, and how it works
+
+## Introduction into the Common Identity
+
+Describe the definition of the common identity ([@RFC7519, sec. 4.1.2])
