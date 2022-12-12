@@ -1,0 +1,17 @@
+@startuml
+!theme cerulean-outline
+
+participant "Source" as src
+participant "Proxy" as p
+participant "Translator" as t
+
+src -> p : Call external Service
+activate p
+    p -> t : Forward HTTP Headers
+    activate t
+    return Translated Identity
+    p ->] : Forward Communication\nwith Identity
+    p <--] : Result
+return Result
+
+@enduml

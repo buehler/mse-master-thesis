@@ -4,6 +4,24 @@
 
 This section gives a description of the required concept to create trust between distant parties in the mesh. It further briefly describes considered technologies and their limitations.
 
+## Additional Requirements
+
+Past work has defined functional and non-functional requirements for the common identity and the Distributed Authentication Mesh [@buehler:DistAuthMesh ch. 4; @buehler:CommonIdentity ch. 4]. The same requirements hold for this work as well. However, the following requirements are added to the list of requirements:
+
+Additional **functional requirements**:
+
+- The proxy, given it has the required key material, is able to create mTLS connections.
+- The proxy has access to the public certificates of all participants he may communicate with.
+- Communication between the mesh participants is encrypted (even if in the same trust zone).
+
+Additional **non-functional requirements**:
+
+- Without a contract, two trust zones cannot communicate with each other.
+- Contracts only contain non-critical information.
+- The contracts can be fetched by any participating contract provider.
+
+Both functional and non-functional requirements extend the existing requirements and still hold for the whole solution. The additional requirements allow the mesh to be as secure as possible when communicating with participants from other trust zones. Furthermore, they allow the mesh to encrypt communication within the same trust zone.
+
 ## Sign and Distribute Contracts between Participants
 
 This section shows how a contract between two parts of the authentication mesh can be created and distributed. To enable the authentication mesh to be truly distributed, the PKI of each trust zone must have a contract to create trust between them. Since each PKI creates its own root certificate, other PKIs must be able to verify and trust the root CA of other PKIs.
@@ -62,7 +80,7 @@ A more centralized approach to form trust between participants is the usage of a
 
 {@fig:04_central_master} shows the basic concept. While the trust zones remain decentralized, the master node must be central to manage the trust between the PKIs. The master node creates contracts between the PKIs of the participants. This could happen via API calls or via configuration in a secure storage location. However, this creates a single point of failure since the master node must also validate the trust. Trust revocation is done via the master node as well. If the master node is the target of an attack, the whole trust in the mesh is threatened. The master node is the single point of failure for inter-zonal communication.
 
-### Distribute Contracts via Git
+### Using a Git Repository
 
 A third option to establish contracts between PKIs in the authentication mesh is the usage of a git repository. Git is a distributed version control system. It consists of a central repository server and a set of clients that clone the repository locally [@spinellis:Git].
 

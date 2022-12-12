@@ -1,0 +1,37 @@
+@startuml
+!theme cerulean-outline
+
+component [Automation/Operator] as auto
+
+frame "Support" as sup {
+    component [Config Storage] as config
+    component [Secret Storage] as secret
+    component [Public Key Infrastructure] as pki
+}
+
+frame "Application Service" as app_a {
+    component [Source] as src
+    component [Proxy] as proxy_a
+    component [Credential\nTranslator] as trans_a
+
+    trans_a <-> proxy_a : Credential Translation
+    proxy_a <-> src : Communication
+}
+
+frame "Application Service" as app_b {
+    component [Destination] as dest
+    component [Proxy] as proxy_b
+    component [Credential\nTranslator] as trans_b
+
+    trans_b <-> proxy_b : Credential Translation
+    proxy_b <-> dest : Communication
+}
+
+sup -[hidden]--> app_a
+
+auto -up-> app_a : Enhance Services\nwith Sidecars
+auto -down-> app_b : Enhance Services\nwith Sidecars
+
+proxy_a <--> proxy_b : Communication\nbetween Services
+
+@enduml

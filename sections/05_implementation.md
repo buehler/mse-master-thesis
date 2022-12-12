@@ -87,7 +87,7 @@ To complement the OIDC API, an **oidc_app** provides the means to access an OIDC
 
 The final demo application is the **oidc_provider**. It is based on a Node.js package that provides OIDC server capabilities. This identity provider allows any user with any password and thus is not suitable for production environments. The provider supports OAuth 2.0 Token Exchange (**RFC8693**) to enable the proxy applications to fetch an access token for a specific user [@RFC8693].
 
-## Implementing the Contract Repository
+## Implementing a Contract Repository
 
 The (open-source) implementation of the contract repository resides in the GitHub repository <https://github.com/WirePact/k8s-contract-repository>. The contract repository consists of two parts: "API" and "GUI". The separation of these parts is done to enable the usage of the API without the user interface. The contract provider only needs access to the API while an administrator could use the gRPC API or the graphical interface to manage the contracts.
 
