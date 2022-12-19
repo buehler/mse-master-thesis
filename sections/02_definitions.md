@@ -2,19 +2,19 @@
 
 # Definitions and Clarification of the Scope {#sec:definitions}
 
-This section provides the scope, context and prerequisite knowledge for this project. It also gives an overview of the used technologies as well as an introduction into the security topic of the project. Note that a deeper introduction into other security related topics is given in the implementation section.
+This section provides the scope, context and prerequisite knowledge for this thesis. It also gives an overview of the used technologies as well as an introduction into the security topic of the project. Note that a deeper introduction into other security related topics is given in the implementation section.
 
 ## Scope of this Project
 
-This project builds upon two former projects "Distributed Authentication Mesh" [@buehler:DistAuthMesh] and "Common Identities in a Distributed Authentication Mesh" [@buehler:CommonIdentity]. The past work defined a general concept for distributed authentication [@buehler:DistAuthMesh] and the definition and implementation of a common identity that is shared between the applications in the mesh [@buehler:CommonIdentity].
+This project builds upon the prior projects "Distributed Authentication Mesh" [@buehler:DistAuthMesh] and "Common Identities in a Distributed Authentication Mesh" [@buehler:CommonIdentity]. The past work defined a general concept for distributed authentication [@buehler:DistAuthMesh] and the definition and implementation of a common identity that is shared between the applications in the mesh [@buehler:CommonIdentity].
 
-The goal of this project is to achieve a truly distributed mesh. To reach a distributed state in the mesh and to be able to trust other trust zones, a contract between each zone must exist. This project defines and implements the contract and provides the tools that are necessary to run such a mesh in a Proof of Concept. In this project, we analyze different options to form a contract between distant parties and define the specific properties of the contract. After the analysis and definition, an open-source implementation shall show the feasibility and the usability of the Distributed Authentication Mesh.
+The goal of this project is to achieve a truly distributed mesh. To reach a distributed state in the mesh and to be able to trust other trust zones, a contract between each zone must exist. This project defines and implements the contract and provides the tools necessary to run such a mesh in a Proof of Concept. In this project, we analyze different options to form a contract between distant parties and define the specific properties of the contract. After the analysis and definition, an open-source implementation shall show the feasibility and the usability of the Distributed Authentication Mesh.
 
-Service mesh functionality, such as service discovery, even for distant services, is not part of the authentication mesh nor of this project. While the authentication mesh is able to run alongside with a service mesh, it must not interfere with the resolution of the communication. The applications that are part of the mesh must be able to respect the `HTTP_PROXY` and `HTTPS_PROXY` variables, since the Kubernetes Operator of the mesh will inject those variables into the application. This technique allows the mesh to configure a local sidecar as the proxy for the application.
+Service mesh functionality, such as service discovery, is not part of the authentication mesh nor of this project. While the authentication mesh is able to run alongside with a service mesh, it must not interfere with the resolution of the communication. The applications that are part of the mesh must be able to respect the `HTTP_PROXY` and `HTTPS_PROXY` variables. Past work has introduced a Kubernetes Operator, that will inject those variables into the application. This technique allows the mesh to configure a local sidecar as the proxy for the application. However, the concept of the mesh or this thesis does not rely on Kubernetes.
 
 ## Introduction into Kubernetes
 
-Since the provided implementation of the Distributed Authentication Mesh runs on Kubernetes, this section gives a brief overview of Kubernetes and the used patterns. The PoC of this thesis runs purely in Docker, however, past work created a Kubernetes Operator that allows running the mesh in a Kubernetes Cluster. Kubernetes is a workload manager that can load balance tasks on several nodes (servers). The explained patterns allow developers to extend the basic Kubernetes functionality.
+Since the provided implementation of the Distributed Authentication Mesh is able to run on Kubernetes, this section gives a brief overview of Kubernetes and the used patterns. The PoC of this thesis runs purely in Docker, but past work created a Kubernetes Operator that allows running the mesh in a Kubernetes Cluster. Kubernetes is an orchestration system that can distribute tasks on several nodes (servers). The explained patterns allow developers to extend the basic Kubernetes functionality.
 
 ### Basic Terminology
 
@@ -32,13 +32,13 @@ A **Service** makes ports in Pods accessible to the Kubernetes world. They provi
 
 ### What is an Operator
 
-Site Reliability Engineering (SRE) is a specific software engineering technique to automate complex software. A team of experts uses certain practices and principles to run scalable and highly available applications [@beyer:SRE]. The "Operator pattern" provides a way to automate complex applications in Kubernetes. An Operator can be compared to a Site Reliability Engineer because the Operator manages and automates complex applications with expert knowledge [@dobies:Operators].
+Site Reliability Engineering (SRE) is a specific software engineering technique to automate complex software. A team of experts uses certain practices and principles to run scalable and highly available applications [@beyer:SRE]. The "Operator pattern" provides a way to automate complex applications in Kubernetes. An Operator embodies the knowledge of SRE teams in software to automate certain tasks [@dobies:Operators].
 
 An Operator makes use of "Custom Resource Definitions" (CRD) in Kubernetes. These definitions extend the Kubernetes API with custom objects that can be manipulated by a user of the Kubernetes instance [@burns:KubernetesBook, ch. 16]. The Operator "watches" for events regarding objects in Kubernetes. The events can contain the creation, modification, and deletion of such a watched resource. As an example, the "Postgres"^[<https://www.postgresql.org/>] database operator reacts to the `Postgres` custom entity. When such an entity is created within Kubernetes, the Operator starts and configures the Postgres database system.
 
 ![Interaction of the Distributed Authentication Mesh Operator in Kubernetes](diagrams/02_operator_in_mesh.puml){#fig:02_operator_in_mesh}
 
-In the Distributed Authentication Mesh, an Operator is used to automatically attach a deployment to the mesh and configure the corresponding services accordingly. As {@fig:02_operator_in_mesh} shows, the Operator injects the credential translator and the Envoy^[<https://www.envoyproxy.io/>] proxy into the application (Deployment) and modifies the ports of the service to target the Envoy proxy [@buehler:DistAuthMesh].
+In the Distributed Authentication Mesh, an Operator is used to automatically include a deployment into the mesh and configure the corresponding services accordingly. The original application is enhanced with several sidecar containers. As {@fig:02_operator_in_mesh} shows, the Operator injects the credential translator and the Envoy^[<https://www.envoyproxy.io/>] proxy into the application (Deployment) and modifies the ports of the service to target the Envoy proxy [@buehler:DistAuthMesh].
 
 ### What is a Sidecar
 
@@ -52,7 +52,7 @@ Sidecars can fulfil multiple use-cases. A service mesh may use Sidecars to provi
 
 ## Introduction into Security, Trust Zones, and Secure Communication
 
-The Distributed Authentication Mesh is a security application. Therefore, security an important topic in this work. This section gives an overview of the relevant topics to understand further security related concepts. More in-depth knowledge is provided in {@sec:implementation}.
+The Distributed Authentication Mesh is a security application. Therefore, security is an important topic in this work. This section gives an overview of the relevant topics to understand further security related concepts. More in-depth knowledge is provided in {@sec:implementation}.
 
 ### The CIA Triad
 
@@ -66,9 +66,9 @@ Availability handles the possibility to get the information from the particular 
 
 ### Trust Zones and Zero Trust
 
-Trust zones are the areas where applications "can trust each other". When an application verifies the presented credentials of a user and allows a request, it may access other resources (such as APIs) on the users' behalf. When the concept of trust zones is applied, other APIs may trust the original requester that the user has authenticated itself. Typically, this is used in microservice architectures where only one point of access (the gateway into the zone) is exposed to the outside world. The APIs behind the application can then share the trust that the gateway created.
+Trust zones are the areas where applications "can trust each other". When an application verifies the presented credentials of a user and allows a request, it may access other resources (such as APIs) on the users' behalf. When the concept of trust zones is applied, other APIs may trust the original requester that the identity has authenticated itself. Typically, this is used in microservice architectures where only one point of access (the gateway into the zone) is exposed to the outside world. The APIs behind the application can then share the trust that the gateway created.
 
-In contrast to trust zones, "Zero Trust" is a security model that focuses on protecting (sensitive) data [@iftekhar:ProtectDataWithZeroTrust]. Zero trust assumes that every call could be intercepted by an attacker. Thus, for the concept of zero trust, it is irrelevant if the application resides in an enterprise network or if it is publicly accessible. As a consequence of zero trust, user credentials must be presented and validated for each access to a resource [@rose:zero-trust].
+In contrast to trust zones, **"Zero Trust"** is a security model that focuses on protecting (sensitive) data [@iftekhar:ProtectDataWithZeroTrust]. Zero trust assumes that every call could be intercepted by an attacker. Thus, for the concept of zero trust, it is irrelevant if the application resides in an enterprise network or if it is publicly accessible. As a consequence of zero trust, user credentials must be presented and validated for each access to a resource [@rose:zero-trust].
 
 ### Securing Communication between Parties
 
@@ -84,7 +84,7 @@ OpenID Connect (OIDC) is not defined in an RFC. The specification is provided by
 
 ![OIDC code authorization flow [@spec:OIDC]. Only contains the credential flow, without the explicit OAuth part. OAuth handles the authorization whereas OIDC handles the authentication.](diagrams/02_oidc_code_flow.puml){#fig:02_oidc_code_flow short-caption="OpenID Connect (OIDC) Authorization Code Flow"}
 
-{@fig:02_oidc_code_flow} shows an example where a user wants to access a protected application. The user is forwarded to an external login page (Identity Provider) and enters his credentials. When they are correct, the user gets redirected to the web application with an authorization code. The code is used to fetch an access and ID token for the user. These tokens identify, authenticate and authorize the user. The application is now able to provide the access token to the API (Relying Party). The API itself is able to verify the presented token to validate and authorize the user.
+{@fig:02_oidc_code_flow} shows an example where a user wants to access a protected application. The user is forwarded to an external login page (Identity Provider) and enters his credentials. When they are correct, the user gets redirected to the web application with an authorization code. The code is used to fetch an access and ID token for the user. These tokens identify, authenticate and authorize the user. The application is now able to provide the access token to the API. The API itself is able to verify the presented token to validate and authorize the user.
 
 #### Mutual Transport Layer Security (mTLS)
 
@@ -100,21 +100,21 @@ The concept of the "Distributed Authentication Mesh", as described in [@buehler:
 
 ### Accessing Legacy Software with Cloud-Native Applications
 
-The Distributed Authentication Mesh addresses the conversion of user credentials from one authentication scheme to another. When multiple services or applications with diverging authentication schemes are required to communicate, the credentials (access token, user/password combination) need to be translated.
+The Distributed Authentication Mesh addresses the conversion of user credentials from one authentication scheme to another. When multiple services or applications with diverging authentication schemes are required to communicate, the credentials (such as access tokens or user/password combinations) need to be translated.
 
 ![The Problem with Diverging Authentication Mechanisms](images/02_is_dist_auth_mesh.png){#fig:02_is_dist_auth_mesh width=85%}
 
 {@fig:02_is_dist_auth_mesh} shows an example: a service with the capability of handling OIDC access tokens wants to communicate with a legacy service that is only able to handle HTTP Basic Authentication. Either software is required to receive a change in code to be able to communicate with the other one.
 
-To translate this into a real world example: a legacy customer relationship management (CRM) system, that has its own web GUI as well as an API is deployed on a Kubernetes cluster. The API is able to handle HTTP Basic Authentication but no modern schemes. The company in question creates a modern web application that supports OIDC. The company already has an Identity and Access Management (IAM) system deployed and uses the IAM for other applications as well. The modern web application communicates with a modern API that understands OIDC but then must fetch some data about a customer from the legacy CRM system. The legacy CRM system is not able to handle OIDC and thus the modern web API must translate the OIDC access token into an HTTP Basic Authentication header.
+To translate this into a real world example: a legacy customer relationship management (CRM) system, that has its own web GUI as well as an API is deployed on a Kubernetes cluster. The API is able to handle HTTP Basic Authentication but no modern schemes. The company in question creates a modern web application that supports OIDC. The company already has an Identity and Access Management (IAM) system deployed and uses the IAM for other applications as well. The modern web application communicates with a modern API that understands OIDC but then must fetch some data about a customer from the legacy CRM system. The legacy CRM system is not able to handle OIDC and thus the modern API must translate the OIDC access token into an HTTP Basic Authentication header.
 
-For various reasons like budget, time or technical risks and skill availability, legacy applications are not always refactored before they are deployed into the cloud. Following the assumption about the reasons, the code change will most likely be introduced into the modern application, because it is presumably better maintainable and deployable than the legacy software. The modern software now receives changes that are not part of its core functionality and may introduce new bugs and security vulnerabilities. In small applications that consist of one or two services, implementing this conversion may be a feasible option. However, in large applications with several services, this is error-prone and time-consuming work. In practice, the stated scenario was encountered at various points in time. Legacy services may not be the primary use case. Another example is the usage of third-party applications without any access to the source code.
+For various reasons like budget, time or technical risks and skill availability, legacy applications are not always refactored before they are deployed into the cloud. Following the assumption about the reasons, the code change will most likely be introduced into the modern application, because it is presumably better maintainable and deployable than the legacy software. The modern software now receives changes that are not part of its core functionality and may introduce new bugs and security vulnerabilities. In small applications that consist of one or two services, implementing this conversion may be a feasible option. However, in large scale applications with several services, this is error-prone and time-consuming work. In practice, the stated scenario was encountered at various points in time. Legacy services may not be the primary use case. Another example is the usage of third-party applications without any access to the source code.
 
 ### The Contrast to Security Assertion Markup Language
 
 "Security Assertion Markup Language" (SAML) is a Federated Identity Management (FIdM) standard. In modern applications, SAML, OAuth, and OIDC are the most popular FIdM standards. SAML is an XML framework for transmitting user data, such as authentication, entitlement, and other attributes, between services and organizations [@naik:SAMLandFIdM].
 
-In contrast to SAML, the Distributed Authentication Mesh does not require any changes to the software. SAML does not cover the case when the authentication mechanisms do not match. In order for SAML to work, all participating applications and services need to be able to understand SAML. The same goal could be achieved, if all services would unterstand OIDC. The concept of the authentication mesh is built around already deployed software. This allows the translation of the authentication method without any changes to the applications.
+In contrast to SAML, the Distributed Authentication Mesh does not require any changes to the software. SAML does not cover the case when the authentication mechanisms do not match. In order for SAML to work, all participating applications and services need to be able to understand SAML. The same goal could be achieved, if all services would understand OIDC. The concept of the authentication mesh is built around already deployed software. This allows the translation of the authentication method without any changes to the applications.
 
 ### The Concept of Distributed Authentication
 
@@ -126,8 +126,8 @@ The architecture of the Distributed Authentication Mesh is not bound to a specif
 
 The main part of the concept evolves around the proxies that are attached to deployed applications. An application service is composed out of three parts. The service (application), a translator that manages the transformation between the common identity and the specific authentication information, and a proxy that is responsible for the communication.
 
-The communication between the instances is handled by the proxies. The proxies communicate with the translators to transform the credentials and attach the modified HTTP headers to requests. However, the mesh must not interfere with the data communication. Handling errors on the data plane is not part of the mesh and must be done by the implementation of the proxy.
+The communication between the instances is handled by the proxies. The proxies communicate with the translators to transform the credentials and modify HTTP headers in requests. However, the mesh must not interfere with the data communication. Handling errors on the data plane is not part of the mesh and must be done by the implementation of the proxy.
 
 ![Outbound Networking Sequence](diagrams/02_dist_auth_outbound_networking.puml){#fig:02_dist_auth_outbound_networking width=60%}
 
-In {@fig:02_dist_auth_outbound_networking} the outgoing communication flow is depicted. When a source wants to communicate with another service, the communication is routed through the proxy and the proxy forwards the relevant HTTP headers to the translator. The translator in turn transforms the credentials and returns a modification instruction to the proxy. The proxy then attaches the modified HTTP headers to the request and forwards it to the destination. The result of the call is then returned to the source [@buehler:DistAuthMesh].
+In {@fig:02_dist_auth_outbound_networking} the outgoing communication flow is depicted. When a source wants to communicate with another service, the communication is routed through the proxy and the proxy forwards the HTTP headers to the translator. The translator in turn transforms the credentials and returns a modification instruction to the proxy. The proxy then attaches the modified HTTP headers to the request and forwards it to the destination. The result of the call is then returned to the source [@buehler:DistAuthMesh].

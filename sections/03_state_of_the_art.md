@@ -2,7 +2,7 @@
 
 # The State of Distributed Authentication {#sec:state_of_the_art}
 
-This section briefly explains the concept of the Distributed Authentication Mesh in a single trust zone. Further, it shows the current state of the art of the mesh, and describes the deficiencies that this project solves.
+This section briefly explains the concept of the Distributed Authentication Mesh in a single trust zone. Further, it shows the current state of the mesh, and describes the deficiencies that this project solves.
 
 ## The Distributed Authentication Mesh in a Single Trust Zone
 

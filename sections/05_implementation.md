@@ -109,7 +109,9 @@ The application sequence in {@fig:04_repo_get_certs} depicts the process when a 
 
 ### Administrate Contracts via Graphical Web Interface
 
-The GUI application is based on the "Lit"^[<https://lit.dev/>] framework, which uses native web components to create applications instead of an engine like "React" and "Angular". Web components are a mix between different technologies to create reusable custom HTML elements. They consist of three main technologies ("Custom HTML Elements", "Shadow DOM", and "HTML Templates") to create reusable elements with encapsulated functionality [@mdn:WebComponents].
+The GUI application is based on the "Lit"^[<https://lit.dev/>] framework. Lit was chosen because it uses native web components to create applications instead of an engine like "React" and "Angular". Lit provides better performance and smaller memory footprint than other frameworks.
+
+Web components are a mix between different technologies to create reusable custom HTML elements. They consist of three main technologies ("Custom HTML Elements", "Shadow DOM", and "HTML Templates") to create reusable elements with encapsulated functionality [@mdn:WebComponents].
 
 ```typescript
 import { html, css, LitElement } from 'lit';
@@ -230,7 +232,7 @@ The contract repository and provider now allow the PKIs to form a trust contract
 
 ## A Trusted Distributed Authentication Mesh
 
-One issue with the Distributed Authentication Mesh is that the identity of a user is sent to a specific target service. The destination then translates this identity into valid authentication credentials [@buehler:DistAuthMesh]. This target service has no means to verify that the sender is actually part of the mesh itself [@buehler:CommonIdentity]. Inside the same trust zone, the service can trust the sender if it is not publicly exposed. But, the use-case of the mesh includes communication between different trust zones. Therefore, the service must be able to verify that the sender is part of the mesh. With the mentioned contracts and the contract repository, it is possible for all participants to fetch a list of contracts. The contracts include the public certificates of all participating PKIs. Thus, it is possible for an application to call an API in a distant trust zone and verify that the sender is part of the mesh.
+One challenge with the Distributed Authentication Mesh is that the identity of a user is sent to a specific target service. The destination then translates this identity into valid authentication credentials [@buehler:DistAuthMesh]. This target service has no means to verify that the sender is actually part of the mesh itself [@buehler:CommonIdentity]. Inside the same trust zone, the service can trust the sender if it is not publicly exposed. But, the use-case of the mesh includes communication between different trust zones. Therefore, the service must be able to verify that the sender is part of the mesh. With the mentioned contracts and the contract repository, it is possible for all participants to fetch a list of contracts. The contracts include the public certificates of all participating PKIs. Thus, it is possible for an application to call an API in a distant trust zone and verify that the sender is part of the mesh.
 
 To show and verify the statement, a demo application setup in Docker is provided in the GitHub repository "<https://github.com/WirePact/docker-demo>". This demo proofs that it is possible to create a connection between two applications via mTLS connection.
 

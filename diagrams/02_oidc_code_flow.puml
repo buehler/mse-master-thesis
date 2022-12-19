@@ -3,7 +3,7 @@
 
 actor User as u
 participant "App" as a
-participant "Relying Party" as rp
+participant "API" as rp
 participant "Identity Provider" as idp
 
 u -> a : Wants to access
