@@ -82,7 +82,7 @@ The "Basic" authentication scheme is defined in **RFC7617**. `Basic` is a trivia
 
 OpenID Connect (OIDC) is not defined in an RFC. The specification is provided by the OpenID Foundation (OIDF). OIDC extends OAuth, which is defined by **RFC6749**. The OAuth framework only defines the authorization part and how access is granted to data and applications. OAuth does not define how the credentials are transmitted [@RFC6749].
 
-![OIDC code authorization flow [@spec:OIDC]. Only contains the credential flow, without the explicit OAuth part. OAuth handles the authorization whereas OIDC handles the authentication.](diagrams/02_oidc_code_flow.puml){#fig:02_oidc_code_flow short-caption="OpenID Connect (OIDC) Authorization Code Flow"}
+![OIDC code authorization flow [@spec:OIDC]. Only contains the credential flow, without the explicit OAuth part. OAuth handles the authorization whereas OIDC handles the authentication.](diagrams/02_oidc_code_flow.puml){#fig:02_oidc_code_flow short-caption="OpenID Connect (OIDC) Authorization Code Flow" width=80%}
 
 {@fig:02_oidc_code_flow} shows an example where a user wants to access a protected application. The user is forwarded to an external login page (Identity Provider) and enters his credentials. When they are correct, the user gets redirected to the web application with an authorization code. The code is used to fetch an access and ID token for the user. These tokens identify, authenticate, and authorize the user. The application is now able to provide the access token to the API. The API itself can verify the presented token to validate and authorize the user.
 

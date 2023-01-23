@@ -99,11 +99,11 @@ In contrast to a git-based approach that is described in the previous sections, 
 
 The contracts do not contain any sensitive information. Therefore, the API does not need to encrypt them in any way. The contracts can be stored in two ways: "Local" and "Kubernetes". While the local storage repository just uses the local file system to store the serialized `proto` files, the "Kubernetes" storage adapter uses Kubernetes Secrets to store the contracts.
 
-![Use-cases for the Contract Repository](diagrams/04_repo_usecases.puml){#fig:04_repo_usecases}
+![Use-cases for the Contract Repository](diagrams/04_repo_usecases.puml){#fig:04_repo_usecases width=70%}
 
 The use-cases shown in {@fig:04_repo_usecases} show the basic functionality of the contract repository. Admins use the GUI or the gRPC API to create, fetch, and revoke contracts in the system. Providers then use the gRPC API to fetch a list of all involved public certificates. This allows the contract provider to create a certificate chain that contains all involved parties and therefore allows mTLS connections to corresponding services.
 
-![Provider fetching relevant contracts from the repository](diagrams/04_repo_get_certs.puml){#fig:04_repo_get_certs}
+![Provider fetching relevant contracts from the repository](diagrams/04_repo_get_certs.puml){#fig:04_repo_get_certs width=80%}
 
 The application sequence in {@fig:04_repo_get_certs} depicts the process when a provider fetches the relevant list of contracts for itself. The provider calls the repository with its own public certificate (which it fetches from its own PKI). The repository then returns a list of all contracts that the provider is part of.
 
@@ -145,6 +145,8 @@ The code above creates a custom "demo-element" that just prints "Hello World!" i
 The HTML above will render the demo element component inside the `<div>` and print "Hello World!" in pink. If multiple of these components are rendered, each has its own root DOM such that there is no interference between them.
 
 The GUI application of the contract repository will allow administrators to create and delete contracts in the repository. The GUI directly interacts with the repository via gRPC-web calls. In contrast to gRPC, gRPC-web is a protocol that allows the usage of gRPC in web applications. It allows HTTP/1.1 and HTTP/2 calls and requires the API to understand gRPC-web or any form of translation layer between the two protocols.
+
+\newpage
 
 ## Implementing a Contract Provider
 
@@ -195,6 +197,8 @@ if !storage.has_certificate().await {
 
 Next, the provider validates if a client certificate and key are present in the storage adapter. This client certificate is required to enable the Envoy proxy to present it for the mTLS connection to the distant service. If no certificate and/or key is found, the provider creates a new key and a certificate signing request (CSR) and sends it to the PKI. The PKI then signs the CSR and returns the signed certificate. The provider now stores the certificate and the key in the storage adapter.
 
+\newpage
+
 ```rust
 debug!("Fetch certificate chain.");
 let (ca, ca_hash) = storage.get_ca().await?;
@@ -238,15 +242,15 @@ To show and verify the statement, a demo application setup in Docker is provided
 
 The Docker demo consists of various containers that are required for the mesh. To verify the setup and the system itself, this section provides a step-by-step analysis of the demo and the functionality of the mesh in conjunction with the contract repository.
 
-![Trust Zone Alice](diagrams/04_proof_pki_alice.puml){#fig:04_proof_pki_alice}
+![Trust Zone Alice](diagrams/04_proof_pki_alice.puml){#fig:04_proof_pki_alice width=80%}
 
 {@fig:04_proof_pki_alice} shows the setup for the first trust zone, "Trust Zone Alice". It consists of a PKI, a contract provider, the application, an application proxy and the translator for WirePact. The PKI creates its own root certificate authority (CA) and creates a client certificate for the contract provider and the translator. The translator is responsible for the extraction and translation of the WirePact common identity [@buehler:CommonIdentity]. The proxy manages all incoming and outgoing communication of the application itself. To enable general access to the application, a public gateway allows incoming communication and passes it to the application proxy.
 
-![Trust Zone Bob](diagrams/04_proof_pki_bob.puml){#fig:04_proof_pki_bob}
+![Trust Zone Bob](diagrams/04_proof_pki_bob.puml){#fig:04_proof_pki_bob width=80%}
 
 The second trust zone, depicted in {@fig:04_proof_pki_bob}, is similar. It contains the same elements except for a public gateway since the demo system resides in Docker. A real-world example would include another gateway that limits access to other containers in the system.
 
-![Communication between Trust Zones](diagrams/04_proof_communication.puml){#fig:04_proof_communication width="80%"}
+![Communication between Trust Zones](diagrams/04_proof_communication.puml){#fig:04_proof_communication width="75%"}
 
 Without a contract, communication as shown in {@fig:04_proof_communication} is not possible. The HTTPS / mTLS connection between the two proxies cannot be established since they have different root CAs. To enable communication between the parties, both proxies must know all public certificates of the involved parties to allow verification of the certificates. When the contract is created, the public certificates of both PKIs are inserted and then stored in the contract repository. Both contract providers will fetch the contract and deliver the full certificate chain to their respective proxies. The proxies can now verify the certificates and establish a connection.
 
