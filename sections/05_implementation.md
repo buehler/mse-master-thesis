@@ -10,7 +10,7 @@ To achieve the goals of this work, the programming language "Rust" provides a so
 
 Since the compiler of Rust ensures that data can only be modified once and that code has no side effects, the language enables developers to create reliable and secure software. The strict compiler and the vast speed of the compiled results were the primary reasons for choosing Rust as the programming language for this work. The Rust language has comparable performance to C and C++ and is therefore suitable for fast reacting systems like the authentication mesh [@ivanov:IsRustFast].
 
-With the calculation of ownership and the transfer of ownership, Rust ensures that data can only ever be manipulated by one instance (its owner). No object can be modified without specifically taking ownership. Even though Rust allows an `unsafe` keyword, the code that it contains must be safe and is checked like normal Rust code. This was proven by Ralf Jung et al. by giving a formal safety proof for the language (and the `unsafe` parts in its standard library) [@jung:RustBelt].
+With the calculation of ownership and the transfer of ownership, Rust ensures that data can only ever be manipulated by one instance (its owner). No object can be modified without specifically taking ownership. Even though Rust allows an `unsafe` keyword, the code that it contains must be safe and is checked like normal Rust code. Ralf Jung et al. proved this by giving formal safety proof for the language (and the `unsafe` parts in its standard library) [@jung:RustBelt].
 
 To demonstrate the advantages of Rust and its compiler, consider the following code examples taken from the article "Safe Systems Programming in Rust" [@jung:Rust]:
 
@@ -24,7 +24,7 @@ v.push_back(12);
 std::cout << *vectorPointer;
 ```
 
-The C++ code above creates a vector of integers with two initial elements. Next, a pointer to the second element in the growable array is created. When the new content (`12`) is added to the vector, the backing memory buffer may be reallocated to allow the new object to be stored. The pointer now still points to the old memory address and therefore is a "dangling pointer" [@jung:Rust].
+The C++ code above creates a vector of integers with two initial elements. Next, a pointer to the second element in the growable array is created. When the additional content (`12`) is added to the vector, the backing memory buffer may be reallocated to allow the new object to be stored. The pointer now still points to the old memory address and therefore is a "dangling pointer" [@jung:Rust].
 
 ```rust
 let mut vec = vec![10, 11];
@@ -37,7 +37,7 @@ println!("{}", *vector_pointer);
 
 The Rust compiler does check usage of data and references statically and therefore does not allow the use of a dangling pointer. The compiler will give the following error message for the code above: "cannot borrow vec as mutable more than once at a time." [@jung:Rust].
 
-During this project, all existing elements of the Distributed Authentication Mesh were rewritten to the Rust programming language. Since the communication between the moving parts of the system use gRPC to communicate, the framework or language behind the system does not really matter.
+During this project, all existing elements of the Distributed Authentication Mesh were rewritten to the Rust programming language. Since the communication between the moving parts of the system uses gRPC to communicate, the framework or language behind the system does not really matter.
 
 ## Demo Applications
 
@@ -54,7 +54,7 @@ secure.GET("swapi/people", getPeopleFromSwapi)
 router.OPTIONS("/swapi/people", cors)
 ```
 
-The code above shows the implementation of the HTTP Basic Authentication in the Go application. The `gin.BasicAuth` function is used to create a middleware that is applied to the `secure` group. The middleware checks the HTTP request for the `Authorization` header and validates the credentials against the given accounts. The named map `gin.Accounts` is a map that contains username / password combinations. The `getPeopleFromSwapi` function is called if the authentication was successful.
+The code above shows the implementation of the HTTP Basic Authentication in the Go application. The `gin.BasicAuth` function is used to create a middleware layer that is applied to the `secure` group. The middleware checks the HTTP request for the `Authorization` header and validates the credentials against the given accounts. The named map `gin.Accounts` is a map that contains username / password combinations. The `getPeopleFromSwapi` function is called if the authentication was successful.
 
 The static website **basic_auth_app** provides a trivial way of accessing any basic protected API. The site runs within an NGINX and contains minimal code. Since this site is hosted statically and does not call API endpoints through some backend logic, it is not possible to adhere to the `HTTP(S)_PROXY` environment variable to route traffic through a specific proxy.
 
@@ -95,9 +95,9 @@ The (open-source) implementation of the contract repository resides in the GitHu
 
 The API is a gRPC based application that provides the means to fetch, create, and revoke contracts. The GUI is a web application that allows direct access to that API via web browser.
 
-In contrast to a git based approach that is described in the previous sections, the local or Kubernetes storage provides a deterministic approach to store the contracts. Further, it improves the testability of the overall system. Using a git repository to store the contracts would not improve the security nor the distribution of the system. However, the basic concept of a git repository is used to distribute the contracts. The opposing part - the contract provider - fetches the contracts from the repository in a regular interval. The repository is not the single point of failure, but could be targeted with a denial of service attack.
+In contrast to a git-based approach that is described in the previous sections, the local or Kubernetes storage provides a deterministic approach to store the contracts. Further, it improves the testability of the overall system. Using a git repository to store the contracts would not improve the security nor the distribution of the system. However, the basic concept of a git repository is used to distribute the contracts. The opposing part - the contract provider - fetches the contracts from the repository at regular intervals. The repository is not the single point of failure but could be targeted with a denial-of-service attack.
 
-The contracts do not contain any sensitive information. Therefore, the API does not need to encrypt them in any way. The contracts can be stored in two possible ways: "Local" and "Kubernetes". While the local storage repository just uses the local file system to store the serialized `proto` files, the "Kubernetes" storage adapter uses Kubernetes Secrets to store the contracts.
+The contracts do not contain any sensitive information. Therefore, the API does not need to encrypt them in any way. The contracts can be stored in two ways: "Local" and "Kubernetes". While the local storage repository just uses the local file system to store the serialized `proto` files, the "Kubernetes" storage adapter uses Kubernetes Secrets to store the contracts.
 
 ![Use-cases for the Contract Repository](diagrams/04_repo_usecases.puml){#fig:04_repo_usecases}
 
@@ -109,7 +109,7 @@ The application sequence in {@fig:04_repo_get_certs} depicts the process when a 
 
 ### Administrate Contracts via Graphical Web Interface
 
-The GUI application is based on the "Lit"^[<https://lit.dev/>] framework. Lit was chosen because it uses native web components to create applications instead of an engine like "React" and "Angular". Lit provides better performance and smaller memory footprint than other frameworks.
+The GUI application is based on the "Lit"^[<https://lit.dev/>] framework. Lit was chosen because it uses native web components to create applications instead of an engine like "React" and "Angular". Lit provides better performance and a smaller memory footprint than other frameworks.
 
 Web components are a mix between different technologies to create reusable custom HTML elements. They consist of three main technologies ("Custom HTML Elements", "Shadow DOM", and "HTML Templates") to create reusable elements with encapsulated functionality [@mdn:WebComponents].
 
@@ -134,7 +134,7 @@ export class DemoElement extends LitElement {
 }
 ```
 
-The code above creates a custom "demo-element" that just prints "Hello World!" in pink. Note that the CSS style is not interfering with any other styles. The CSS block is encapsulated in this particular component only. To use the component above, one needs to include the "demo-element" in their HTML code.
+The code above creates a custom "demo-element" that just prints "Hello World!" in pink. Note that the CSS style is not interfering with any other styles. The CSS block is encapsulated in this component only. To use the component above, one needs to include the "demo-element" in their HTML code.
 
 ```html
 <div>
@@ -158,7 +158,7 @@ During each interval, the provider executes the steps in {@fig:04_provider_inter
 2. Connect to the contract repository.
 3. Check if the public key of the PKI is stored, if not, download and store it.
 4. Check if a client certificate and key are stored, if not, create a key and fetch a certificate from the PKI.
-5. Fetch all public certificates that the "own PKI" is involved it and store the certificates.
+5. Fetch all public certificates that the "own PKI" is involved in and store the certificates.
 
 The following code blocks describe the actions that the provider takes to achieve the steps above.
 
@@ -193,7 +193,7 @@ if !storage.has_certificate().await {
 }
 ```
 
-Next, the provider validates if a client certificate and key are present in the storage adapter. This client certificate is required to enable the Envoy proxy to present it for the mTLS connection to the distant serivce. If no certificate and/or key is found, the provider creates a new key and a certificate signing request (CSR) and sends it to the PKI. The PKI then signs the CSR and returns the signed certificate. The provider now stores the certificate and the key in the storage adapter.
+Next, the provider validates if a client certificate and key are present in the storage adapter. This client certificate is required to enable the Envoy proxy to present it for the mTLS connection to the distant service. If no certificate and/or key is found, the provider creates a new key and a certificate signing request (CSR) and sends it to the PKI. The PKI then signs the CSR and returns the signed certificate. The provider now stores the certificate and the key in the storage adapter.
 
 ```rust
 debug!("Fetch certificate chain.");
@@ -218,25 +218,25 @@ The last step is to fetch all certificates that are involved in the contracts th
 
 Like other applications in this project and the Distributed Authentication Mesh, the provider is able to store the certificates in a local or Kubernetes storage adapter. The main goal of the provider is to fetch all public keys of participating PKIs to enable mutual TLS (mTLS) connections between participants.
 
-Since there are multiple possible ways to inject additional trusted root certificates (all participant PKIs), the provider does only store the certificate in the defined storage adapter. In Kubernetes and its ingress controllers, the TLS context must be configured to use the certificate, the key, and the trusted root certificates. The NGINX ingress controller must know where the client certificate resides to connect to an internal service.
+Since there are multiple ways to inject additional trusted root certificates (all participant PKIs), the provider does only store the certificate in the defined storage adapter. In Kubernetes and its ingress controllers, the TLS context must be configured to use the certificate, the key, and the trusted root certificates. The NGINX ingress controller must know where the client certificate resides to connect to an internal service.
 
 ## Create Secure Communication between Services
 
 With the Distributed Authentication Mesh and the additional extensions of this project, we are now able to create fully trusted communication between distant services. Even if the applications are not running in the same trust context. The Distributed Authentication Mesh provides the means to create a signed identity that can be used to authenticate a user [@buehler:DistAuthMesh]. The common identity allows participating systems to restore required authorization information for the targeted service [@buehler:CommonIdentity].
 
-The contract repository and provider now allow the PKIs to form a trust contract with each other. This in turn allows services to establish mTLS connections with each other. When participants of the mesh communicate with other services in distant trust contexts, mTLS ensures that only allowed connections can be created. This mitigates the risk of external services forging an identity and connect to internal services. The secured connection proofs that the PKIs are trusted and therefore no further encryption for the common identity is required. The mTLS connection cannot be successfully created if the service (respectively its PKI) is not involved in a contract with the destination.
+The contract repository and provider now allow the PKIs to form a trust contract with each other. This in turn allows services to establish mTLS connections with each other. When participants of the mesh communicate with other services in distant trust contexts, mTLS ensures that only allowed connections can be created. This mitigates the risk of external services forging an identity and connecting to internal services. The secured connection proofs that the PKIs are trusted and therefore no further encryption for the common identity is required. The mTLS connection cannot be successfully created if the service (respectively its PKI) is not involved in a contract with the destination.
 
 ![The Contract Repository and the Trust Zones](diagrams/04_trusted_comm_contracts.puml){#fig:04_trusted_comm_contracts width="80%"}
 
-{@fig:04_trusted_comm_contracts} shows how the parts interact with the contract repository. There are two different trust zones, each of which contains its own "main" PKI. The PKI generate a CA certificate root and create client certificates for the services within the same trust zone. An admin can create a trust contract between the two trust zones and stores the contract in the repository. Contract providers (for each service) can then fetch the contracts and provide a client certificate and a certificate chain to validate incoming client certificates.
+{@fig:04_trusted_comm_contracts} shows how the parts interact with the contract repository. There are two different trust zones, each of which contains its own "main" PKI. The PKI generates a CA certificate root and creates client certificates for the services within the same trust zone. An admin can create a trust contract between the two trust zones and store the contract in the repository. Contract providers (for each service) can then fetch the contracts and provide a client certificate and a certificate chain to validate incoming client certificates.
 
 ## A Trusted Distributed Authentication Mesh
 
-One challenge with the Distributed Authentication Mesh is that the identity of a user is sent to a specific target service. The destination then translates this identity into valid authentication credentials [@buehler:DistAuthMesh]. This target service has no means to verify that the sender is actually part of the mesh itself [@buehler:CommonIdentity]. Inside the same trust zone, the service can trust the sender if it is not publicly exposed. But, the use-case of the mesh includes communication between different trust zones. Therefore, the service must be able to verify that the sender is part of the mesh. With the mentioned contracts and the contract repository, it is possible for all participants to fetch a list of contracts. The contracts include the public certificates of all participating PKIs. Thus, it is possible for an application to call an API in a distant trust zone and verify that the sender is part of the mesh.
+One challenge with the Distributed Authentication Mesh is that the identity of a user is sent to a specific target service. The destination then translates this identity into valid authentication credentials [@buehler:DistAuthMesh]. This target service has no means to verify that the sender is rightfully a part of the mesh itself [@buehler:CommonIdentity]. Inside the same trust zone, the service can trust the sender if it is not publicly exposed. But the use-case of the mesh includes communication between different trust zones. Therefore, the service must be able to verify that the sender is part of the mesh. With the contracts and the contract repository, it is possible for all participants to download a list of contracts. The contracts include the public certificates of all participating PKIs. Thus, it is possible for an application to call an API in a distant trust zone and verify that the sender is part of the mesh.
 
 To show and verify the statement, a demo application setup in Docker is provided in the GitHub repository "<https://github.com/WirePact/docker-demo>". This demo proofs that it is possible to create a connection between two applications via mTLS connection.
 
-The Docker demo consists of various containers that are required for the mesh. To verify the setup and the system itself, this section provides a step by step analysis of the demo and the functionality of the mesh in conjunction with the contract repository.
+The Docker demo consists of various containers that are required for the mesh. To verify the setup and the system itself, this section provides a step-by-step analysis of the demo and the functionality of the mesh in conjunction with the contract repository.
 
 ![Trust Zone Alice](diagrams/04_proof_pki_alice.puml){#fig:04_proof_pki_alice}
 
@@ -244,12 +244,12 @@ The Docker demo consists of various containers that are required for the mesh. T
 
 ![Trust Zone Bob](diagrams/04_proof_pki_bob.puml){#fig:04_proof_pki_bob}
 
-The second trust zone, depicted in {@fig:04_proof_pki_bob}, is similar. It contains the same elements except for a public gateway since the demo system resides in Docker. A real world example would include another gateway that limits the access to other containers in the system.
+The second trust zone, depicted in {@fig:04_proof_pki_bob}, is similar. It contains the same elements except for a public gateway since the demo system resides in Docker. A real-world example would include another gateway that limits access to other containers in the system.
 
 ![Communication between Trust Zones](diagrams/04_proof_communication.puml){#fig:04_proof_communication width="80%"}
 
-Without a contract, communication as shown in {@fig:04_proof_communication} is not possible. The HTTPS / mTLS connection between the two proxies cannot be established since they have totally different root CAs. To enable communication between the parties, both proxies must now all public certificates of the involved parties to allow verification of the certificates. When the contract is created, the public certificates of both PKIs are inserted and then stored in the contract repository. Both contract providers will fetch the contract and deliver the full certificate chain to their respective proxies. The proxies can now verify the certificates and establish a connection.
+Without a contract, communication as shown in {@fig:04_proof_communication} is not possible. The HTTPS / mTLS connection between the two proxies cannot be established since they have different root CAs. To enable communication between the parties, both proxies must know all public certificates of the involved parties to allow verification of the certificates. When the contract is created, the public certificates of both PKIs are inserted and then stored in the contract repository. Both contract providers will fetch the contract and deliver the full certificate chain to their respective proxies. The proxies can now verify the certificates and establish a connection.
 
 ![mTLS Connection between Proxies](images/04_proof_tls_handshake.png){#fig:04_proof_tls_handshake}
 
-To proof that the connection is secured via mTLS, the network traffic of the demo Docker setup was recorded^[With "termshark", a terminal only alternative to Wireshark (<https://github.com/gcla/termshark>)]. {@fig:04_proof_tls_handshake} shows the TLS handshake between the two proxies. All other communication is HTTP, while the communication between the proxies is HTTPS. We can see that the server does present its own certificate accompanied by the certificate request for the client. The client in turn does present its own certificate and then, the connection is established.
+To proof that the connection is secured via mTLS, the network traffic of the demo Docker setup was recorded^[With "termshark", a terminal only alternative to Wireshark (<https://github.com/gcla/termshark>)]. {@fig:04_proof_tls_handshake} shows the TLS handshake between the two proxies. All other communication is HTTP, while the communication between the proxies is HTTPS. We can see that the server does present its own certificate accompanied by the certificate request for the client. The client in turn does present its own certificate and then the connection is established.
